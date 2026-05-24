@@ -12,3 +12,12 @@ Manifest V3 Chrome extension for saving a custom color per website.
    `/Users/julianfalk/Documents/Coding/projects/2026/Falk.io/JuliansXtension`
 
 The popup stores colors by normalized hostname in `chrome.storage.sync`.
+
+## Reload after changes
+
+When this unpacked extension changes locally:
+
+1. Open `chrome://extensions`.
+2. Find **JuliansXtension**.
+3. Click the reload icon on its card.
+4. Refresh the website tab.

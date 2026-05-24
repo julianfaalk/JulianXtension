@@ -95,53 +95,30 @@
   accent-color: var(--jxt-colorizer-main) !important;
 }
 
-html::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 2147483647;
-  pointer-events: none;
-  background: var(--jxt-colorizer-main);
-  mix-blend-mode: color;
-  opacity: 0.12;
-}
-
-html,
-body {
-  background-color: color-mix(in srgb, var(--jxt-colorizer-main) 7%, Canvas) !important;
-}
-
-a,
+a[href],
 a:visited,
-[role="link"],
-[role="link"] *,
-[data-testid*="link" i],
-[data-testid*="link" i] * {
+[role="link"] {
   color: var(--jxt-colorizer-main) !important;
-}
-
-button:not(:disabled),
-[role="button"]:not([aria-disabled="true"]),
-input[type="button"]:not(:disabled),
-input[type="submit"]:not(:disabled),
-input[type="reset"]:not(:disabled),
-select:not(:disabled) {
-  border-color: var(--jxt-colorizer-main) !important;
 }
 
 button:not(:disabled):hover,
 [role="button"]:not([aria-disabled="true"]):hover {
-  box-shadow: inset 0 0 0 999px var(--jxt-colorizer-soft) !important;
+  box-shadow: inset 0 0 0 999px var(--jxt-colorizer-soft);
 }
 
 button[type="submit"]:not(:disabled),
 input[type="submit"]:not(:disabled),
-[data-testid*="tweetButton" i],
-[data-testid*="primary" i],
-[data-primary="true"],
-[aria-pressed="true"] {
+[role="button"][data-testid*="tweetButton" i],
+[role="button"][data-testid="SideNav_NewTweet_Button"] {
   background-color: var(--jxt-colorizer-main) !important;
   border-color: var(--jxt-colorizer-main) !important;
+  color: var(--jxt-colorizer-contrast) !important;
+}
+
+button[type="submit"]:not(:disabled) *,
+input[type="submit"]:not(:disabled) *,
+[role="button"][data-testid*="tweetButton" i] *,
+[role="button"][data-testid="SideNav_NewTweet_Button"] * {
   color: var(--jxt-colorizer-contrast) !important;
 }
 
@@ -154,12 +131,42 @@ select:focus,
   outline-offset: 2px !important;
 }
 
-[aria-selected="true"],
+[role="tab"][aria-selected="true"],
+[role="tab"][aria-selected="true"] *,
 [aria-current="page"],
+[aria-current="page"] *,
 [data-state="active"],
 [data-active="true"] {
   border-color: var(--jxt-colorizer-main) !important;
   color: var(--jxt-colorizer-main) !important;
+}
+
+[role="tab"][aria-selected="true"] div,
+[role="tab"][aria-selected="true"] span:last-child {
+  border-color: var(--jxt-colorizer-main) !important;
+}
+
+[aria-pressed="true"] {
+  border-color: var(--jxt-colorizer-main) !important;
+  color: var(--jxt-colorizer-main) !important;
+}
+
+[style*="color: rgb(29, 155, 240)"],
+[style*="color:rgb(29,155,240)"],
+[style*="fill: rgb(29, 155, 240)"],
+[style*="fill:rgb(29,155,240)"] {
+  color: var(--jxt-colorizer-main) !important;
+  fill: var(--jxt-colorizer-main) !important;
+}
+
+[style*="background-color: rgb(29, 155, 240)"],
+[style*="background-color:rgb(29,155,240)"] {
+  background-color: var(--jxt-colorizer-main) !important;
+}
+
+[style*="border-color: rgb(29, 155, 240)"],
+[style*="border-color:rgb(29,155,240)"] {
+  border-color: var(--jxt-colorizer-main) !important;
 }
 
 progress,
