@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>JuliansXtension</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main class="popup-shell">
+      <section class="site-row">
+        <div>
+          <p class="eyebrow">Current site</p>
+          <h1 id="siteName">Loading...</h1>
+        </div>
+        <div id="statusDot" class="status-dot" aria-hidden="true"></div>
+      </section>
+
+      <section class="color-panel">
+        <label class="picker-label" for="siteColor">Site color</label>
+        <div class="picker-row">
+          <input id="siteColor" type="color" value="#1d9bf0" aria-label="Choose site color">
+          <output id="colorValue" for="siteColor">#1d9bf0</output>
+        </div>
+      </section>
+
+      <section class="actions">
+        <button id="applyButton" type="button">Apply</button>
+        <button id="resetButton" type="button">Reset</button>
+      </section>
+
+      <p id="message" class="message" role="status"></p>
+    </main>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
