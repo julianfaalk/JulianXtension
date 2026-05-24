@@ -27,17 +27,17 @@
   const DEFAULT_THEME = {
     version: THEME_VERSION,
     colors: {
-      background: "#000000",
-      surface: "#16181c",
-      text: "#f5f7fa",
-      mutedText: "#71767b",
-      accent: "#1d9bf0",
-      button: "#1d9bf0",
+      background: "#15202b",
+      surface: "#192734",
+      text: "#f5f8fa",
+      mutedText: "#8899a6",
+      accent: "#1da1f2",
+      button: "#1da1f2",
       buttonText: "#ffffff",
-      border: "#2f3336"
+      border: "#38444d"
     },
     fontScale: 100,
-    radius: 14,
+    radius: 16,
     spacing: 100
   };
   const host = normalizeHost(window.location.hostname);
@@ -169,6 +169,8 @@ main,
 [role="main"],
 [data-testid="primaryColumn"],
 [data-testid="sidebarColumn"],
+[data-testid="primaryColumn"] > div,
+[data-testid="sidebarColumn"] > div,
 header[role="banner"],
 nav[role="navigation"],
 aside {
@@ -182,17 +184,24 @@ article,
 [role="dialog"],
 [role="menu"],
 [role="listbox"],
+[data-testid="HoverCard"],
 [role="tooltip"] {
   background-color: var(--jxt-surface) !important;
   border-color: var(--jxt-border) !important;
   color: var(--jxt-text) !important;
 }
 
-:where(p, h1, h2, h3, h4, h5, h6, li, label, summary, blockquote, [role="heading"], [data-testid="tweetText"], [data-testid="tweetText"] *) {
+:where(p, h1, h2, h3, h4, h5, h6, li, label, summary, blockquote, [role="heading"], [data-testid="tweetText"], [data-testid="tweetText"] *),
+[style*="color: rgb(231, 233, 234)"],
+[style*="color:rgb(231,233,234)"],
+[style*="color: rgb(247, 249, 249)"],
+[style*="color:rgb(247,249,249)"] {
   color: var(--jxt-text) !important;
 }
 
-:where(time, [datetime], small, figcaption, [style*="color: rgb(113, 118, 123)"], [style*="color:rgb(113,118,123)"]) {
+:where(time, [datetime], small, figcaption, [style*="color: rgb(113, 118, 123)"], [style*="color:rgb(113,118,123)"]),
+[style*="color: rgb(139, 152, 165)"],
+[style*="color:rgb(139,152,165)"] {
   color: var(--jxt-muted) !important;
 }
 
@@ -292,8 +301,22 @@ input[type="submit"]:not(:disabled) *,
   background-color: var(--jxt-accent) !important;
 }
 
+div[style*="background-color: rgb(0, 0, 0)"],
+div[style*="background-color:rgb(0,0,0)"] {
+  background-color: var(--jxt-bg) !important;
+}
+
+div[style*="background-color: rgb(22, 24, 28)"],
+div[style*="background-color:rgb(22,24,28)"],
+div[style*="background-color: rgb(32, 35, 39)"],
+div[style*="background-color:rgb(32,35,39)"] {
+  background-color: var(--jxt-surface) !important;
+}
+
 [style*="border-color: rgb(47, 51, 54)"],
-[style*="border-color:rgb(47,51,54)"] {
+[style*="border-color:rgb(47,51,54)"],
+[style*="border-color: rgb(56, 68, 77)"],
+[style*="border-color:rgb(56,68,77)"] {
   border-color: var(--jxt-border) !important;
 }
 
@@ -356,6 +379,10 @@ meter {
   }
 
   function normalizeTheme(value) {
+    if (isPlainObject(value) && value.theme) {
+      return normalizeTheme(value.theme);
+    }
+
     if (typeof value === "string") {
       return buildThemeFromAccent(value);
     }

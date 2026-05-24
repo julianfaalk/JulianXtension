@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "JuliansXtension",
-  "description": "Build and persist custom visual themes per website.",
-  "version": "0.2.0",
+  "description": "Build, save, and apply custom visual themes per website.",
+  "version": "0.3.0",
   "permissions": [
     "activeTab",
     "scripting",
