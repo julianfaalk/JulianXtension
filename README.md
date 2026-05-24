@@ -1,6 +1,6 @@
 # JuliansXtension
 
-Manifest V3 Chrome extension for saving a custom color per website.
+Manifest V3 Chrome extension for saving a custom visual theme per website.
 
 ## Test locally
 
@@ -11,7 +11,9 @@ Manifest V3 Chrome extension for saving a custom color per website.
 
    `/Users/julianfalk/Documents/Coding/projects/2026/Falk.io/JuliansXtension`
 
-The popup stores colors by normalized hostname in `chrome.storage.sync`.
+The popup stores one theme per normalized hostname in `chrome.storage.local`.
+
+Themes currently include background, surface, text, muted text, accent, button, button text, border, font size, corner radius, and spacing controls.
 
 ## Reload after changes
 

@@ -1,16 +1,44 @@
 (() => {
-  if (window.__juliansXtensionLoaded) {
+  if (window.__juliansXtensionLoadedVersion === 2) {
     return;
   }
 
   window.__juliansXtensionLoaded = true;
+  window.__juliansXtensionLoadedVersion = 2;
 
   const STYLE_ID = "juliansxtension-style";
   const STORAGE_KEY = "siteThemes";
+  const THEME_VERSION = 2;
   const MESSAGE_TYPES = {
     ping: "JULIANS_XTENSION_PING",
-    setColor: "JULIANS_XTENSION_SET_COLOR",
-    clearColor: "JULIANS_XTENSION_CLEAR_COLOR"
+    applyTheme: "JULIANS_XTENSION_APPLY_THEME",
+    clearTheme: "JULIANS_XTENSION_CLEAR_THEME"
+  };
+  const COLOR_KEYS = [
+    "background",
+    "surface",
+    "text",
+    "mutedText",
+    "accent",
+    "button",
+    "buttonText",
+    "border"
+  ];
+  const DEFAULT_THEME = {
+    version: THEME_VERSION,
+    colors: {
+      background: "#000000",
+      surface: "#16181c",
+      text: "#f5f7fa",
+      mutedText: "#71767b",
+      accent: "#1d9bf0",
+      button: "#1d9bf0",
+      buttonText: "#ffffff",
+      border: "#2f3336"
+    },
+    fontScale: 100,
+    radius: 14,
+    spacing: 100
   };
   const host = normalizeHost(window.location.hostname);
 
@@ -29,20 +57,20 @@
       return true;
     }
 
-    if (message.type === MESSAGE_TYPES.setColor) {
-      const color = normalizeColor(message.color);
-      if (!color) {
+    if (message.type === MESSAGE_TYPES.applyTheme) {
+      const theme = normalizeTheme(message.theme);
+      if (!theme) {
         sendResponse({ ok: false });
         return true;
       }
 
-      applyColor(color);
+      applyTheme(theme);
       sendResponse({ ok: true });
       return true;
     }
 
-    if (message.type === MESSAGE_TYPES.clearColor) {
-      clearColor();
+    if (message.type === MESSAGE_TYPES.clearTheme) {
+      clearTheme();
       sendResponse({ ok: true });
       return true;
     }
@@ -51,84 +79,186 @@
   });
 
   chrome.storage.onChanged.addListener((changes, areaName) => {
-    if (areaName !== "sync" || !changes[STORAGE_KEY]) {
+    if (areaName !== "local" || !changes[STORAGE_KEY]) {
       return;
     }
 
     const nextThemes = changes[STORAGE_KEY].newValue || {};
     const theme = normalizeTheme(nextThemes[host]);
     if (theme) {
-      applyColor(theme.color);
-    } else {
-      clearColor();
+      applyTheme(theme);
+    } else if (Object.prototype.hasOwnProperty.call(nextThemes, host)) {
+      clearTheme();
     }
   });
 
-  loadStoredColor();
+  loadStoredTheme();
 
-  async function loadStoredColor() {
+  async function loadStoredTheme() {
     try {
-      const result = await chrome.storage.sync.get({ [STORAGE_KEY]: {} });
-      const theme = normalizeTheme(result[STORAGE_KEY]?.[host]);
+      const local = await chrome.storage.local.get({ [STORAGE_KEY]: {} });
+      const localThemes = isPlainObject(local[STORAGE_KEY]) ? local[STORAGE_KEY] : {};
 
-      if (theme) {
-        applyColor(theme.color);
+      if (Object.prototype.hasOwnProperty.call(localThemes, host)) {
+        const theme = normalizeTheme(localThemes[host]);
+        if (theme) {
+          applyTheme(theme);
+        } else {
+          clearTheme();
+        }
+        return;
+      }
+
+      const sync = await chrome.storage.sync.get({ [STORAGE_KEY]: {} });
+      const legacyThemes = isPlainObject(sync[STORAGE_KEY]) ? sync[STORAGE_KEY] : {};
+      const legacyTheme = normalizeTheme(legacyThemes[host]);
+
+      if (legacyTheme) {
+        applyTheme(legacyTheme);
       }
     } catch (_error) {
-      clearColor();
+      clearTheme();
     }
   }
 
-  function applyColor(color) {
-    const rgb = hexToRgb(color);
-    const contrast = getReadableTextColor(rgb);
+  function applyTheme(theme) {
+    const accentRgb = hexToRgb(theme.colors.accent);
+    const buttonRgb = hexToRgb(theme.colors.button);
     const style = getOrCreateStyle();
 
-    style.textContent = `
+    style.textContent = buildThemeCss(theme, accentRgb, buttonRgb);
+    document.documentElement.dataset.juliansXtensionActive = "true";
+  }
+
+  function buildThemeCss(theme, accentRgb, buttonRgb) {
+    const colors = theme.colors;
+    const radius = `${theme.radius}px`;
+    const fontScale = String(theme.fontScale / 100);
+    const spacing = String(theme.spacing / 100);
+
+    return `
 :root {
-  --jxt-colorizer-main: ${color};
-  --jxt-colorizer-rgb: ${rgb.r}, ${rgb.g}, ${rgb.b};
-  --jxt-colorizer-soft: rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.12);
-  --jxt-colorizer-medium: rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.24);
-  --jxt-colorizer-strong: rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.84);
-  --jxt-colorizer-contrast: ${contrast};
-  accent-color: var(--jxt-colorizer-main) !important;
+  --jxt-bg: ${colors.background};
+  --jxt-surface: ${colors.surface};
+  --jxt-text: ${colors.text};
+  --jxt-muted: ${colors.mutedText};
+  --jxt-accent: ${colors.accent};
+  --jxt-accent-soft: rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, 0.14);
+  --jxt-button: ${colors.button};
+  --jxt-button-soft: rgba(${buttonRgb.r}, ${buttonRgb.g}, ${buttonRgb.b}, 0.16);
+  --jxt-button-text: ${colors.buttonText};
+  --jxt-border: ${colors.border};
+  --jxt-radius: ${radius};
+  --jxt-font-scale: ${fontScale};
+  --jxt-spacing: ${spacing};
+  accent-color: var(--jxt-accent) !important;
+}
+
+html {
+  background: var(--jxt-bg) !important;
+  font-size: calc(100% * var(--jxt-font-scale)) !important;
+}
+
+body {
+  background: var(--jxt-bg) !important;
+  color: var(--jxt-text) !important;
+}
+
+body,
+main,
+[role="main"],
+[data-testid="primaryColumn"],
+[data-testid="sidebarColumn"],
+header[role="banner"],
+nav[role="navigation"],
+aside {
+  background-color: var(--jxt-bg) !important;
+  color: var(--jxt-text) !important;
+}
+
+article,
+[data-testid="cellInnerDiv"],
+[data-testid="sidebarColumn"] section,
+[role="dialog"],
+[role="menu"],
+[role="listbox"],
+[role="tooltip"] {
+  background-color: var(--jxt-surface) !important;
+  border-color: var(--jxt-border) !important;
+  color: var(--jxt-text) !important;
+}
+
+:where(p, h1, h2, h3, h4, h5, h6, li, label, summary, blockquote, [role="heading"], [data-testid="tweetText"], [data-testid="tweetText"] *) {
+  color: var(--jxt-text) !important;
+}
+
+:where(time, [datetime], small, figcaption, [style*="color: rgb(113, 118, 123)"], [style*="color:rgb(113,118,123)"]) {
+  color: var(--jxt-muted) !important;
 }
 
 a[href],
 a:visited,
 [role="link"] {
-  color: var(--jxt-colorizer-main) !important;
+  color: var(--jxt-accent) !important;
 }
 
-button:not(:disabled):hover,
-[role="button"]:not([aria-disabled="true"]):hover {
-  box-shadow: inset 0 0 0 999px var(--jxt-colorizer-soft);
+svg,
+svg * {
+  color: currentColor;
 }
 
-button[type="submit"]:not(:disabled),
-input[type="submit"]:not(:disabled),
-[role="button"][data-testid*="tweetButton" i],
-[role="button"][data-testid="SideNav_NewTweet_Button"] {
-  background-color: var(--jxt-colorizer-main) !important;
-  border-color: var(--jxt-colorizer-main) !important;
-  color: var(--jxt-colorizer-contrast) !important;
+input,
+textarea,
+select,
+[contenteditable="true"] {
+  background-color: var(--jxt-surface) !important;
+  border-color: var(--jxt-border) !important;
+  color: var(--jxt-text) !important;
 }
 
-button[type="submit"]:not(:disabled) *,
-input[type="submit"]:not(:disabled) *,
-[role="button"][data-testid*="tweetButton" i] *,
-[role="button"][data-testid="SideNav_NewTweet_Button"] * {
-  color: var(--jxt-colorizer-contrast) !important;
+input::placeholder,
+textarea::placeholder {
+  color: var(--jxt-muted) !important;
 }
 
 input:focus,
 textarea:focus,
 select:focus,
 [contenteditable="true"]:focus {
-  border-color: var(--jxt-colorizer-main) !important;
-  outline: 2px solid var(--jxt-colorizer-main) !important;
+  border-color: var(--jxt-accent) !important;
+  outline: 2px solid var(--jxt-accent) !important;
   outline-offset: 2px !important;
+}
+
+button,
+[role="button"],
+input[type="button"],
+input[type="reset"],
+input[type="submit"] {
+  border-color: var(--jxt-button) !important;
+}
+
+button:not(:disabled):hover,
+[role="button"]:not([aria-disabled="true"]):hover {
+  box-shadow: inset 0 0 0 999px var(--jxt-button-soft) !important;
+}
+
+button[type="submit"]:not(:disabled),
+input[type="submit"]:not(:disabled),
+[role="button"][data-testid*="tweetButton" i],
+[role="button"][data-testid="SideNav_NewTweet_Button"],
+[data-testid="confirmationSheetConfirm"] {
+  background-color: var(--jxt-button) !important;
+  border-color: var(--jxt-button) !important;
+  color: var(--jxt-button-text) !important;
+}
+
+button[type="submit"]:not(:disabled) *,
+input[type="submit"]:not(:disabled) *,
+[role="button"][data-testid*="tweetButton" i] *,
+[role="button"][data-testid="SideNav_NewTweet_Button"] *,
+[data-testid="confirmationSheetConfirm"] * {
+  color: var(--jxt-button-text) !important;
 }
 
 [role="tab"][aria-selected="true"],
@@ -136,53 +266,78 @@ select:focus,
 [aria-current="page"],
 [aria-current="page"] *,
 [data-state="active"],
-[data-active="true"] {
-  border-color: var(--jxt-colorizer-main) !important;
-  color: var(--jxt-colorizer-main) !important;
+[data-active="true"],
+[aria-pressed="true"] {
+  border-color: var(--jxt-accent) !important;
+  color: var(--jxt-accent) !important;
 }
 
 [role="tab"][aria-selected="true"] div,
-[role="tab"][aria-selected="true"] span:last-child {
-  border-color: var(--jxt-colorizer-main) !important;
-}
-
-[aria-pressed="true"] {
-  border-color: var(--jxt-colorizer-main) !important;
-  color: var(--jxt-colorizer-main) !important;
+[role="tab"][aria-selected="true"] span:last-child,
+[style*="border-color: rgb(29, 155, 240)"],
+[style*="border-color:rgb(29,155,240)"] {
+  border-color: var(--jxt-accent) !important;
 }
 
 [style*="color: rgb(29, 155, 240)"],
 [style*="color:rgb(29,155,240)"],
 [style*="fill: rgb(29, 155, 240)"],
 [style*="fill:rgb(29,155,240)"] {
-  color: var(--jxt-colorizer-main) !important;
-  fill: var(--jxt-colorizer-main) !important;
+  color: var(--jxt-accent) !important;
+  fill: var(--jxt-accent) !important;
 }
 
 [style*="background-color: rgb(29, 155, 240)"],
 [style*="background-color:rgb(29,155,240)"] {
-  background-color: var(--jxt-colorizer-main) !important;
+  background-color: var(--jxt-accent) !important;
 }
 
-[style*="border-color: rgb(29, 155, 240)"],
-[style*="border-color:rgb(29,155,240)"] {
-  border-color: var(--jxt-colorizer-main) !important;
+[style*="border-color: rgb(47, 51, 54)"],
+[style*="border-color:rgb(47,51,54)"] {
+  border-color: var(--jxt-border) !important;
+}
+
+hr,
+[role="separator"],
+:where(article, section, aside, nav, header, footer, input, textarea, select) {
+  border-color: var(--jxt-border) !important;
+}
+
+:where(button, [role="button"], input, textarea, select, article, [role="dialog"], [role="menu"], img, video) {
+  border-radius: var(--jxt-radius) !important;
+}
+
+:where(article, [data-testid="cellInnerDiv"]) {
+  padding-block: calc(8px * var(--jxt-spacing)) !important;
+}
+
+:where(button, [role="button"]) {
+  padding-inline: calc(14px * var(--jxt-spacing));
+}
+
+[data-testid="tweetText"],
+[data-testid="tweetText"] * {
+  font-size: calc(15px * var(--jxt-font-scale)) !important;
+  line-height: 1.45 !important;
 }
 
 progress,
 meter {
-  accent-color: var(--jxt-colorizer-main) !important;
+  accent-color: var(--jxt-accent) !important;
 }
 
 ::selection {
-  background: var(--jxt-colorizer-medium) !important;
-  color: var(--jxt-colorizer-contrast) !important;
+  background: var(--jxt-accent-soft) !important;
+  color: var(--jxt-text) !important;
+}
+
+* {
+  scrollbar-color: var(--jxt-accent) var(--jxt-bg);
 }
 `;
-    document.documentElement.dataset.juliansXtensionActive = "true";
   }
 
-  function clearColor() {
+  function clearTheme() {
     document.getElementById(STYLE_ID)?.remove();
     delete document.documentElement.dataset.juliansXtensionActive;
   }
@@ -200,22 +355,72 @@ meter {
     return style;
   }
 
-  function normalizeHost(hostname) {
-    return String(hostname || "").replace(/^www\./i, "").toLowerCase();
-  }
-
   function normalizeTheme(value) {
     if (typeof value === "string") {
-      const color = normalizeColor(value);
-      return color ? { color } : null;
+      return buildThemeFromAccent(value);
     }
 
-    if (!value || typeof value !== "object") {
+    if (!isPlainObject(value)) {
       return null;
     }
 
-    const color = normalizeColor(value.color);
-    return color ? { ...value, color } : null;
+    if (typeof value.color === "string") {
+      return buildThemeFromAccent(value.color);
+    }
+
+    const colors = {};
+    const sourceColors = isPlainObject(value.colors) ? value.colors : {};
+
+    for (const key of COLOR_KEYS) {
+      colors[key] = normalizeColor(sourceColors[key]) || DEFAULT_THEME.colors[key];
+    }
+
+    return {
+      version: THEME_VERSION,
+      colors,
+      fontScale: clampNumber(value.fontScale, 85, 130, DEFAULT_THEME.fontScale),
+      radius: clampNumber(value.radius, 0, 28, DEFAULT_THEME.radius),
+      spacing: clampNumber(value.spacing, 85, 120, DEFAULT_THEME.spacing),
+      updatedAt: Number.isFinite(value.updatedAt) ? value.updatedAt : undefined
+    };
+  }
+
+  function buildThemeFromAccent(color) {
+    const accent = normalizeColor(color);
+    if (!accent) {
+      return null;
+    }
+
+    return {
+      ...cloneTheme(DEFAULT_THEME),
+      colors: {
+        ...DEFAULT_THEME.colors,
+        accent,
+        button: accent
+      }
+    };
+  }
+
+  function cloneTheme(theme) {
+    return {
+      ...theme,
+      colors: {
+        ...theme.colors
+      }
+    };
+  }
+
+  function clampNumber(value, min, max, fallback) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) {
+      return fallback;
+    }
+
+    return Math.min(max, Math.max(min, Math.round(number)));
+  }
+
+  function normalizeHost(hostname) {
+    return String(hostname || "").replace(/^www\./i, "").toLowerCase();
   }
 
   function normalizeColor(color) {
@@ -236,8 +441,7 @@ meter {
     };
   }
 
-  function getReadableTextColor({ r, g, b }) {
-    const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-    return luminance > 0.56 ? "#0b0f14" : "#ffffff";
+  function isPlainObject(value) {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
   }
 })();

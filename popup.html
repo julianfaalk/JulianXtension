@@ -8,26 +8,108 @@
   </head>
   <body>
     <main class="popup-shell">
-      <section class="site-row">
-        <div>
+      <header class="site-header">
+        <div class="site-copy">
           <p class="eyebrow">Current site</p>
           <h1 id="siteName">Loading...</h1>
         </div>
         <div id="statusDot" class="status-dot" aria-hidden="true"></div>
-      </section>
+      </header>
 
-      <section class="color-panel">
-        <label class="picker-label" for="siteColor">Accent color</label>
-        <div class="picker-row">
-          <input id="siteColor" type="color" value="#1d9bf0" aria-label="Choose site color">
-          <output id="colorValue" for="siteColor">#1d9bf0</output>
+      <section class="preview-panel" aria-label="Theme preview">
+        <div class="preview-window">
+          <div class="preview-rail">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <div class="preview-content">
+            <div class="preview-line strong"></div>
+            <div class="preview-line"></div>
+            <div class="preview-button"></div>
+          </div>
         </div>
       </section>
 
-      <section class="actions">
-        <button id="applyButton" type="button">Apply</button>
-        <button id="resetButton" type="button">Reset</button>
-      </section>
+      <form id="themeForm" class="theme-form">
+        <section class="panel">
+          <div class="section-head">
+            <h2>Colors</h2>
+          </div>
+          <div class="color-grid">
+            <label class="color-field">
+              <span>Background</span>
+              <input type="color" data-color-key="background" value="#000000">
+              <output data-output-for="background">#000000</output>
+            </label>
+            <label class="color-field">
+              <span>Surface</span>
+              <input type="color" data-color-key="surface" value="#16181c">
+              <output data-output-for="surface">#16181C</output>
+            </label>
+            <label class="color-field">
+              <span>Text</span>
+              <input type="color" data-color-key="text" value="#f5f7fa">
+              <output data-output-for="text">#F5F7FA</output>
+            </label>
+            <label class="color-field">
+              <span>Muted text</span>
+              <input type="color" data-color-key="mutedText" value="#71767b">
+              <output data-output-for="mutedText">#71767B</output>
+            </label>
+            <label class="color-field">
+              <span>Accent</span>
+              <input type="color" data-color-key="accent" value="#1d9bf0">
+              <output data-output-for="accent">#1D9BF0</output>
+            </label>
+            <label class="color-field">
+              <span>Button</span>
+              <input type="color" data-color-key="button" value="#1d9bf0">
+              <output data-output-for="button">#1D9BF0</output>
+            </label>
+            <label class="color-field">
+              <span>Button text</span>
+              <input type="color" data-color-key="buttonText" value="#ffffff">
+              <output data-output-for="buttonText">#FFFFFF</output>
+            </label>
+            <label class="color-field">
+              <span>Border</span>
+              <input type="color" data-color-key="border" value="#2f3336">
+              <output data-output-for="border">#2F3336</output>
+            </label>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-head">
+            <h2>Typography</h2>
+            <output id="fontScaleValue" for="fontScale">100%</output>
+          </div>
+          <label class="range-field">
+            <span>Font size</span>
+            <input id="fontScale" type="range" min="85" max="130" step="1" data-number-key="fontScale" value="100">
+          </label>
+        </section>
+
+        <section class="panel">
+          <div class="section-head">
+            <h2>Layout</h2>
+          </div>
+          <label class="range-field">
+            <span>Corner radius <output id="radiusValue" for="radius">14px</output></span>
+            <input id="radius" type="range" min="0" max="28" step="1" data-number-key="radius" value="14">
+          </label>
+          <label class="range-field">
+            <span>Spacing <output id="spacingValue" for="spacing">100%</output></span>
+            <input id="spacing" type="range" min="85" max="120" step="1" data-number-key="spacing" value="100">
+          </label>
+        </section>
+
+        <section class="actions">
+          <button id="saveButton" type="submit">Save theme</button>
+          <button id="resetButton" type="button">Reset site</button>
+        </section>
+      </form>
 
       <p id="message" class="message" role="status"></p>
     </main>
