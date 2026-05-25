@@ -192,7 +192,7 @@ async function init() {
   els.resetButton.addEventListener("click", resetCurrentSite);
 }
 
-function handlePresetClick(event) {
+async function handlePresetClick(event) {
   const card = event.target.closest("[data-preset-id]");
   if (!card) {
     return;
@@ -207,10 +207,10 @@ function handlePresetClick(event) {
   draftTheme = cloneTheme(preset.theme);
   renderTheme(draftTheme, preset.name);
   renderSelectedThemeCards();
-  previewDraft(`Previewing ${preset.name}. Save for this site to keep it.`);
+  await saveDraftForSite(`${preset.name} selected and saved for this site.`);
 }
 
-function handleCustomThemeClick(event) {
+async function handleCustomThemeClick(event) {
   const deleteButton = event.target.closest("[data-delete-custom-id]");
   if (deleteButton) {
     deleteCustomTheme(deleteButton.dataset.deleteCustomId);
@@ -231,7 +231,7 @@ function handleCustomThemeClick(event) {
   draftTheme = cloneTheme(customTheme.theme);
   renderTheme(draftTheme, customTheme.name);
   renderSelectedThemeCards();
-  previewDraft(`Previewing ${customTheme.name}. Save for this site to keep it.`);
+  await saveDraftForSite(`${customTheme.name} selected and saved for this site.`);
 }
 
 function handleManualInput(event) {
@@ -250,6 +250,10 @@ function handleManualInput(event) {
 async function saveCurrentThemeForSite(event) {
   event.preventDefault();
 
+  await saveDraftForSite();
+}
+
+async function saveDraftForSite(successMessage) {
   if (!activeHost || !activeTab?.id) {
     return;
   }
@@ -262,7 +266,7 @@ async function saveCurrentThemeForSite(event) {
     await chrome.storage.local.set({ [SITE_THEMES_KEY]: themes });
     await applyThemeToActiveTab(draftTheme);
     setSavedState(true, record.name);
-    setMessage(`${record.name} saved for ${activeHost}.`);
+    setMessage(successMessage || `${record.name} saved for ${activeHost}.`);
   } catch (error) {
     setMessage(error.message || "Could not save this theme.", true);
   }

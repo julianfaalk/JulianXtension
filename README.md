@@ -17,6 +17,8 @@ Themes currently include background, surface, text, muted text, accent, button, 
 
 Built-in presets include **X Dim**, Obsidian, Aurora, Ultraviolet, Ember, and Rose Noir. Manual edits can also be saved as reusable custom themes under **My Themes**.
 
+Selecting a built-in preset or saved custom theme immediately saves it for the current site. Manual edits are previewed first and become permanent when **Save for site** is clicked.
+
 ## Reload after changes
 
 When this unpacked extension changes locally:

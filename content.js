@@ -175,8 +175,6 @@ main,
 [data-testid="primaryColumn"] [data-testid="cellInnerDiv"],
 [data-testid="primaryColumn"] [role="tablist"],
 [data-testid="primaryColumn"] [role="tablist"] > div,
-[data-testid="primaryColumn"] form,
-[data-testid="primaryColumn"] form > div,
 header[role="banner"],
 nav[role="navigation"],
 aside {
@@ -187,6 +185,8 @@ aside {
 [data-testid="sidebarColumn"] section,
 [data-testid="sidebarColumn"] [aria-label],
 [data-testid="sidebarColumn"] [role="complementary"] section,
+[data-testid="primaryColumn"] form,
+[data-testid="primaryColumn"] form > div,
 [data-testid="primaryColumn"] [data-testid="tweetTextarea_0"],
 [data-testid="primaryColumn"] [data-testid="toolBar"],
 [data-testid="primaryColumn"] [data-testid="toolBar"] > div,
@@ -327,6 +327,21 @@ div[style*="background-color: rgb(22, 24, 28)"],
 div[style*="background-color:rgb(22,24,28)"],
 div[style*="background-color: rgb(32, 35, 39)"],
 div[style*="background-color:rgb(32,35,39)"] {
+  background-color: var(--jxt-surface) !important;
+}
+
+[data-testid="primaryColumn"] form div[style*="background-color: rgb(0, 0, 0)"],
+[data-testid="primaryColumn"] form div[style*="background-color:rgb(0,0,0)"],
+[data-testid="primaryColumn"] form div[style*="background-color: rgba(0, 0, 0"],
+[data-testid="primaryColumn"] form div[style*="background-color:rgba(0,0,0"],
+[data-testid="primaryColumn"] form [style*="background-color: rgb(0, 0, 0)"],
+[data-testid="primaryColumn"] form [style*="background-color:rgb(0,0,0)"],
+[data-testid="sidebarColumn"] section div[style*="background-color: rgb(0, 0, 0)"],
+[data-testid="sidebarColumn"] section div[style*="background-color:rgb(0,0,0)"],
+[data-testid="sidebarColumn"] section div[style*="background-color: rgba(0, 0, 0"],
+[data-testid="sidebarColumn"] section div[style*="background-color:rgba(0,0,0"],
+[data-testid="sidebarColumn"] section [style*="background-color: rgb(0, 0, 0)"],
+[data-testid="sidebarColumn"] section [style*="background-color:rgb(0,0,0)"] {
   background-color: var(--jxt-surface) !important;
 }
 
