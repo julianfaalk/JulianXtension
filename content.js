@@ -41,6 +41,10 @@
     spacing: 100
   };
   const host = normalizeHost(window.location.hostname);
+  const xPaintedElements = new Set();
+  let currentTheme = null;
+  let xRepaintTimer = null;
+  let xSurfaceObserver = null;
 
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (!message || typeof message !== "object") {
@@ -126,8 +130,14 @@
     const buttonRgb = hexToRgb(theme.colors.button);
     const style = getOrCreateStyle();
 
+    currentTheme = theme;
     style.textContent = buildThemeCss(theme, accentRgb, buttonRgb);
     document.documentElement.dataset.juliansXtensionActive = "true";
+
+    if (isXHost()) {
+      startXSurfaceObserver();
+      scheduleXSurfacePaint();
+    }
   }
 
   function buildThemeCss(theme, accentRgb, buttonRgb) {
@@ -425,7 +435,166 @@ meter {
 
   function clearTheme() {
     document.getElementById(STYLE_ID)?.remove();
+    stopXSurfaceObserver();
+    restoreXPaintedSurfaces();
+    currentTheme = null;
     delete document.documentElement.dataset.juliansXtensionActive;
+  }
+
+  function startXSurfaceObserver() {
+    if (xSurfaceObserver || !document.documentElement) {
+      return;
+    }
+
+    xSurfaceObserver = new MutationObserver(() => {
+      scheduleXSurfacePaint();
+    });
+    xSurfaceObserver.observe(document.documentElement, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  function stopXSurfaceObserver() {
+    window.clearTimeout(xRepaintTimer);
+    xRepaintTimer = null;
+
+    if (xSurfaceObserver) {
+      xSurfaceObserver.disconnect();
+      xSurfaceObserver = null;
+    }
+  }
+
+  function scheduleXSurfacePaint() {
+    if (!currentTheme || !isXHost()) {
+      return;
+    }
+
+    window.clearTimeout(xRepaintTimer);
+    xRepaintTimer = window.setTimeout(() => {
+      paintXDynamicSurfaces(currentTheme);
+    }, 80);
+  }
+
+  function paintXDynamicSurfaces(theme) {
+    if (!document.body) {
+      return;
+    }
+
+    pruneDisconnectedPaintedElements();
+    for (const element of xPaintedElements) {
+      paintSurfaceElement(element, theme.colors.surface);
+    }
+
+    for (const root of getXSurfaceRoots()) {
+      paintSurfaceElement(root, theme.colors.surface);
+
+      for (const element of root.querySelectorAll("*")) {
+        if (shouldPaintXSurface(element)) {
+          paintSurfaceElement(element, theme.colors.surface);
+        }
+      }
+    }
+  }
+
+  function getXSurfaceRoots() {
+    return document.querySelectorAll([
+      '[data-testid="primaryColumn"] form',
+      '[data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has(form)',
+      '[data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has([data-testid="tweetTextarea_0"])',
+      '[data-testid="sidebarColumn"] section',
+      '[data-testid="sidebarColumn"] [role="complementary"]',
+      '[role="complementary"] section',
+      'aside section'
+    ].join(","));
+  }
+
+  function shouldPaintXSurface(element) {
+    if (!(element instanceof HTMLElement)) {
+      return false;
+    }
+
+    const box = element.getBoundingClientRect();
+    if (box.width < 12 || box.height < 8) {
+      return false;
+    }
+
+    const background = window.getComputedStyle(element).backgroundColor;
+    return isNearBlackBackground(background);
+  }
+
+  function isNearBlackBackground(value) {
+    const rgb = parseRgb(value);
+    if (!rgb || rgb.a === 0) {
+      return false;
+    }
+
+    return rgb.r <= 36 && rgb.g <= 40 && rgb.b <= 44;
+  }
+
+  function parseRgb(value) {
+    const match = String(value || "").match(
+      /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*([\d.]+))?\s*\)$/i
+    );
+
+    if (!match) {
+      return null;
+    }
+
+    return {
+      r: Number(match[1]),
+      g: Number(match[2]),
+      b: Number(match[3]),
+      a: match[4] === undefined ? 1 : Number(match[4])
+    };
+  }
+
+  function paintSurfaceElement(element, color) {
+    if (!(element instanceof HTMLElement)) {
+      return;
+    }
+
+    if (!element.dataset.jxtPrevBackgroundStored) {
+      element.dataset.jxtPrevBackground = element.style.getPropertyValue("background-color");
+      element.dataset.jxtPrevBackgroundPriority = element.style.getPropertyPriority("background-color");
+      element.dataset.jxtPrevBackgroundStored = "true";
+    }
+
+    element.dataset.jxtDynamicSurface = "true";
+    element.style.setProperty("background-color", color, "important");
+    xPaintedElements.add(element);
+  }
+
+  function restoreXPaintedSurfaces() {
+    for (const element of xPaintedElements) {
+      if (!(element instanceof HTMLElement)) {
+        continue;
+      }
+
+      const previous = element.dataset.jxtPrevBackground || "";
+      const priority = element.dataset.jxtPrevBackgroundPriority || "";
+
+      if (previous) {
+        element.style.setProperty("background-color", previous, priority);
+      } else {
+        element.style.removeProperty("background-color");
+      }
+
+      delete element.dataset.jxtPrevBackground;
+      delete element.dataset.jxtPrevBackgroundPriority;
+      delete element.dataset.jxtPrevBackgroundStored;
+      delete element.dataset.jxtDynamicSurface;
+    }
+
+    xPaintedElements.clear();
+  }
+
+  function pruneDisconnectedPaintedElements() {
+    for (const element of xPaintedElements) {
+      if (!element.isConnected) {
+        xPaintedElements.delete(element);
+      }
+    }
   }
 
   function getOrCreateStyle() {
@@ -511,6 +680,13 @@ meter {
 
   function normalizeHost(hostname) {
     return String(hostname || "").replace(/^www\./i, "").toLowerCase();
+  }
+
+  function isXHost() {
+    return host === "x.com" ||
+      host.endsWith(".x.com") ||
+      host === "twitter.com" ||
+      host.endsWith(".twitter.com");
   }
 
   function normalizeColor(color) {
