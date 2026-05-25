@@ -283,6 +283,7 @@ h2 {
 
 .theme-card-title,
 .theme-card-subtitle {
+  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
