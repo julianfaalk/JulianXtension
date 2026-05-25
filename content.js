@@ -158,6 +158,7 @@
   --jxt-button-soft: rgba(${buttonRgb.r}, ${buttonRgb.g}, ${buttonRgb.b}, 0.16);
   --jxt-button-text: ${colors.buttonText};
   --jxt-border: ${colors.border};
+  --jxt-grid-line: color-mix(in srgb, var(--jxt-border) 82%, var(--jxt-text) 18%);
   --jxt-radius: ${radius};
   --jxt-font-scale: ${fontScale};
   --jxt-spacing: ${spacing};
@@ -392,6 +393,25 @@ aside section [style*="background-color:rgb(0,0,0)"] {
   border-color: var(--jxt-border) !important;
 }
 
+[data-testid="primaryColumn"] {
+  border-left: 1px solid var(--jxt-grid-line) !important;
+  border-right: 1px solid var(--jxt-grid-line) !important;
+}
+
+[data-testid="primaryColumn"] [role="tablist"],
+[data-testid="primaryColumn"] form,
+[data-testid="primaryColumn"] [data-testid="cellInnerDiv"] {
+  border-bottom: 1px solid var(--jxt-grid-line) !important;
+}
+
+[data-testid="primaryColumn"] [data-testid="cellInnerDiv"] {
+  box-shadow: inset 0 -1px 0 var(--jxt-grid-line) !important;
+}
+
+[data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has(article) {
+  min-height: 1px;
+}
+
 hr,
 [role="separator"],
 :where(article, section, aside, nav, header, footer, input, textarea, select) {
@@ -495,6 +515,10 @@ meter {
         }
       }
     }
+
+    for (const element of getXLayoutSurfaceCandidates()) {
+      paintSurfaceElement(element, theme.colors.surface);
+    }
   }
 
   function getXSurfaceRoots() {
@@ -521,6 +545,62 @@ meter {
 
     const background = window.getComputedStyle(element).backgroundColor;
     return isNearBlackBackground(background);
+  }
+
+  function getXLayoutSurfaceCandidates() {
+    const primaryColumn = document.querySelector('[data-testid="primaryColumn"]');
+    const primaryRect = primaryColumn?.getBoundingClientRect();
+    const candidates = [];
+    const selectors = [
+      "div",
+      "section",
+      "aside",
+      "form",
+      '[role="region"]',
+      '[role="group"]',
+      '[role="complementary"]',
+      '[aria-label]'
+    ].join(",");
+
+    for (const element of document.querySelectorAll(selectors)) {
+      if (!shouldPaintXSurface(element)) {
+        continue;
+      }
+
+      const box = element.getBoundingClientRect();
+      if (isRightRailSurface(box, primaryRect) || isComposerSurface(element, box, primaryRect)) {
+        candidates.push(element);
+      }
+    }
+
+    return candidates;
+  }
+
+  function isRightRailSurface(box, primaryRect) {
+    const rightRailStart = primaryRect
+      ? primaryRect.right - 4
+      : Math.round(window.innerWidth * 0.58);
+
+    return box.left >= rightRailStart &&
+      box.width >= 80 &&
+      box.width <= 560 &&
+      box.height >= 28 &&
+      box.height <= Math.max(900, window.innerHeight);
+  }
+
+  function isComposerSurface(element, box, primaryRect) {
+    if (!primaryRect || !element.closest('[data-testid="primaryColumn"]')) {
+      return false;
+    }
+
+    const inPrimaryColumn = box.right >= primaryRect.left &&
+      box.left <= primaryRect.right &&
+      box.top >= primaryRect.top &&
+      box.top <= primaryRect.top + 300;
+
+    return inPrimaryColumn &&
+      box.width >= 40 &&
+      box.height >= 8;
   }
 
   function isNearBlackBackground(value) {
