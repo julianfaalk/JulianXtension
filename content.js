@@ -158,7 +158,8 @@
   --jxt-button-soft: rgba(${buttonRgb.r}, ${buttonRgb.g}, ${buttonRgb.b}, 0.16);
   --jxt-button-text: ${colors.buttonText};
   --jxt-border: ${colors.border};
-  --jxt-grid-line: color-mix(in srgb, var(--jxt-border) 82%, var(--jxt-text) 18%);
+  --jxt-grid-line: color-mix(in srgb, var(--jxt-border) 62%, var(--jxt-text) 38%);
+  --jxt-post-bg: color-mix(in srgb, var(--jxt-bg) 92%, var(--jxt-surface) 8%);
   --jxt-radius: ${radius};
   --jxt-font-scale: ${fontScale};
   --jxt-spacing: ${spacing};
@@ -398,6 +399,10 @@ aside section [style*="background-color:rgb(0,0,0)"] {
   border-right: 1px solid var(--jxt-grid-line) !important;
 }
 
+[data-testid="primaryColumn"] article {
+  background-color: var(--jxt-post-bg) !important;
+}
+
 [data-testid="primaryColumn"] [role="tablist"],
 [data-testid="primaryColumn"] form,
 [data-testid="primaryColumn"] [data-testid="cellInnerDiv"] {
@@ -405,11 +410,36 @@ aside section [style*="background-color:rgb(0,0,0)"] {
 }
 
 [data-testid="primaryColumn"] [data-testid="cellInnerDiv"] {
-  box-shadow: inset 0 -1px 0 var(--jxt-grid-line) !important;
+  position: relative !important;
+  box-shadow:
+    inset 0 -1px 0 var(--jxt-grid-line),
+    inset 0 1px 0 color-mix(in srgb, var(--jxt-bg) 78%, var(--jxt-grid-line) 22%) !important;
+}
+
+[data-testid="primaryColumn"] [data-testid="cellInnerDiv"]::after {
+  content: "" !important;
+  position: absolute !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  z-index: 2 !important;
+  height: 1px !important;
+  pointer-events: none !important;
+  background: var(--jxt-grid-line) !important;
+}
+
+[data-testid="primaryColumn"] [data-testid="cellInnerDiv"] + [data-testid="cellInnerDiv"] {
+  border-top: 1px solid color-mix(in srgb, var(--jxt-grid-line) 78%, transparent) !important;
 }
 
 [data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has(article) {
   min-height: 1px;
+}
+
+[data-testid="primaryColumn"] article [role="link"]:has(img),
+[data-testid="primaryColumn"] article [data-testid="card.wrapper"],
+[data-testid="primaryColumn"] article [data-testid="tweet"] {
+  border-color: var(--jxt-grid-line) !important;
 }
 
 hr,
