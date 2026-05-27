@@ -195,7 +195,7 @@ body {
   color: var(--jxt-text) !important;
 }
 
-/* Cards / dialogs / menus / popovers => surface color */
+/* Cards / dialogs / menus / popovers => surface color. Role-based only. */
 :where(
   [role="dialog"],
   [role="alertdialog"],
@@ -205,23 +205,8 @@ body {
   [role="combobox"],
   [role="tooltip"],
   [role="status"],
-  [role="tablist"],
-  dialog,
-  table,
-  thead,
-  tfoot
-),
-[class*="card" i]:not(html):not(body),
-[class*="modal" i]:not(html):not(body),
-[class*="dialog" i]:not(html):not(body),
-[class*="popup" i]:not(html):not(body),
-[class*="popover" i]:not(html):not(body),
-[class*="dropdown" i]:not(html):not(body),
-[class*="tooltip" i]:not(html):not(body),
-[class*="menu" i]:not(html):not(body):not([class*="menubar" i]),
-[class*="panel" i]:not(html):not(body),
-[class*="sheet" i]:not(html):not(body),
-[class*="toast" i]:not(html):not(body) {
+  dialog
+) {
   background-color: var(--jxt-surface) !important;
   border-color: var(--jxt-border) !important;
   color: var(--jxt-text) !important;
@@ -283,47 +268,62 @@ select:focus,
   accent-color: var(--jxt-accent) !important;
 }
 
-/* Primary / submit buttons: full button colour */
-:where(
-  input[type="submit"],
-  input[type="reset"],
-  button[type="submit"],
-  [role="button"][data-testid*="tweetButton" i],
-  [role="button"][data-testid="SideNav_NewTweet_Button"],
-  [role="button"][data-testid*="confirm" i],
-  [role="button"][data-testid*="follow" i]:not([data-testid*="unfollow" i]),
-  [data-testid="confirmationSheetConfirm"]
-) {
+/* Primary / submit buttons: full button colour. Multiple variants because
+   X.com's sidebar "Post" button has changed identifiers over time. */
+input[type="submit"],
+input[type="reset"],
+button[type="submit"],
+[data-testid="SideNav_NewTweet_Button"],
+[data-testid="SideNav_NewPost_Button"],
+[data-testid="tweetButton"],
+[data-testid="tweetButtonInline"],
+[data-testid*="NewTweet" i],
+[data-testid*="NewPost" i],
+[data-testid*="tweetButton" i],
+[data-testid="confirmationSheetConfirm"],
+a[href="/compose/post"],
+a[href="/compose/tweet"],
+a[href="/compose"][role="link"],
+nav a[aria-label="Post" i],
+nav a[aria-label="Posten" i],
+[role="button"][aria-label="Post" i]:not([aria-label*="schedule" i]):not([aria-label*="draft" i]),
+[role="link"][aria-label="Post" i]:not([aria-label*="schedule" i]) {
   background-color: var(--jxt-button) !important;
   color: var(--jxt-button-text) !important;
   border-color: var(--jxt-button) !important;
 }
 
-:where(
-  input[type="submit"],
-  input[type="reset"],
-  button[type="submit"],
-  [role="button"][data-testid*="tweetButton" i],
-  [role="button"][data-testid="SideNav_NewTweet_Button"],
-  [data-testid="confirmationSheetConfirm"]
-) :where(span, div, p, b, strong, i, em) {
+input[type="submit"] *,
+input[type="reset"] *,
+button[type="submit"] *,
+[data-testid="SideNav_NewTweet_Button"] *,
+[data-testid="SideNav_NewPost_Button"] *,
+[data-testid="tweetButton"] *,
+[data-testid="tweetButtonInline"] *,
+[data-testid*="NewTweet" i] *,
+[data-testid*="NewPost" i] *,
+[data-testid*="tweetButton" i] *,
+a[href="/compose/post"] *,
+a[href="/compose/tweet"] *,
+nav a[aria-label="Post" i] *,
+nav a[aria-label="Posten" i] *,
+[role="button"][aria-label="Post" i] *,
+[role="link"][aria-label="Post" i] * {
   color: var(--jxt-button-text) !important;
 }
 
-/* Generic buttons that don't have an explicit background: give them a subtle accent border */
-:where(button:not([style*="background"]):not([class*="icon" i]):not([aria-label]),
-       button[type="button"]:not([style*="background"]):not([class*="icon" i])) {
-  border: 1px solid var(--jxt-border) !important;
-  background-color: var(--jxt-surface) !important;
-  color: var(--jxt-text) !important;
-}
-
-button:not(:disabled):hover,
-[role="button"]:not([aria-disabled="true"]):hover,
-input[type="button"]:not(:disabled):hover,
-input[type="submit"]:not(:disabled):hover,
-input[type="reset"]:not(:disabled):hover {
-  filter: brightness(1.1);
+/* Cover the case where the button's inline style sets a near-white background:
+   any anchor/role-button with an inline white background INSIDE the X sidebar */
+nav [style*="background-color: rgb(239, 243, 244)" i],
+nav [style*="background-color:rgb(239,243,244)" i],
+nav [style*="background-color: rgb(247, 249, 249)" i],
+nav [style*="background-color:rgb(247,249,249)" i],
+[role="navigation"] [style*="background-color: rgb(239, 243, 244)" i],
+[role="navigation"] [style*="background-color:rgb(239,243,244)" i],
+[role="navigation"] [style*="background-color: rgb(247, 249, 249)" i],
+[role="navigation"] [style*="background-color:rgb(247,249,249)" i] {
+  background-color: var(--jxt-button) !important;
+  color: var(--jxt-button-text) !important;
 }
 
 button:disabled,
@@ -566,13 +566,8 @@ svg:not([fill]) {
   line-height: 1.45 !important;
 }
 
-/* Layout spacing */
-:where(button, [role="button"]) {
-  padding-inline: calc(14px * var(--jxt-spacing));
-}
-
-/* Border radius universal */
-:where(button, [role="button"], input, textarea, select, [role="dialog"], [role="menu"], img, video, picture) {
+/* Border radius universal — low specificity so site-specific overrides still win */
+:where(input, textarea, select, [role="dialog"], [role="menu"], img, video, picture) {
   border-radius: var(--jxt-radius);
 }
 `;
