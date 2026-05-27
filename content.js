@@ -157,11 +157,6 @@ aside,
   color: var(--xt-text) !important;
 }
 
-/* Articles get a subtle alt-tint */
-[data-testid="primaryColumn"] article {
-  background-color: var(--xt-post-bg) !important;
-}
-
 /* Cards, dialogs, search, sidebar sections => surface */
 [data-testid="sidebarColumn"] section,
 [data-testid="sidebarColumn"] [aria-label],
@@ -367,42 +362,11 @@ input[type="submit"]:not(:disabled) * {
   border-color: var(--xt-accent) !important;
 }
 
-/* Primary column grid lines */
-[data-testid="primaryColumn"] {
-  border-left: 1px solid var(--xt-grid-line) !important;
-  border-right: 1px solid var(--xt-grid-line) !important;
-}
-
-[data-testid="primaryColumn"] [role="tablist"],
-[data-testid="primaryColumn"] form,
-[data-testid="primaryColumn"] [data-testid="cellInnerDiv"] {
-  border-bottom: 1px solid var(--xt-grid-line) !important;
-}
-
-[data-testid="primaryColumn"] [data-testid="cellInnerDiv"] {
-  position: relative !important;
-  box-shadow:
-    inset 0 -1px 0 var(--xt-grid-line),
-    inset 0 1px 0 color-mix(in srgb, var(--xt-bg) 78%, var(--xt-grid-line) 22%) !important;
-}
-
-[data-testid="primaryColumn"] [data-testid="cellInnerDiv"]::after {
-  content: "" !important;
-  position: absolute !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  z-index: 2 !important;
-  height: 1px !important;
-  pointer-events: none !important;
-  background: var(--xt-grid-line) !important;
-}
-
-/* Article cards */
+/* Article media/quoted cards: keep their borders themed */
 [data-testid="primaryColumn"] article [role="link"]:has(img),
 [data-testid="primaryColumn"] article [data-testid="card.wrapper"],
 [data-testid="primaryColumn"] article [data-testid="tweet"] {
-  border-color: var(--xt-grid-line) !important;
+  border-color: var(--xt-border) !important;
 }
 
 hr,
