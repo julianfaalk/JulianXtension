@@ -1,10 +1,10 @@
 (() => {
-  if (window.__juliansXtensionLoadedVersion === 2) {
+  if (window.__juliansXtensionLoadedVersion === 3) {
     return;
   }
 
   window.__juliansXtensionLoaded = true;
-  window.__juliansXtensionLoadedVersion = 2;
+  window.__juliansXtensionLoadedVersion = 3;
 
   const STYLE_ID = "juliansxtension-style";
   const STORAGE_KEY = "siteThemes";
@@ -41,10 +41,10 @@
     spacing: 100
   };
   const host = normalizeHost(window.location.hostname);
-  const xPaintedElements = new Set();
+  const paintedElements = new Set();
   let currentTheme = null;
-  let xRepaintTimer = null;
-  let xSurfaceObserver = null;
+  let repaintTimer = null;
+  let surfaceObserver = null;
 
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (!message || typeof message !== "object") {
@@ -128,34 +128,35 @@
   function applyTheme(theme) {
     const accentRgb = hexToRgb(theme.colors.accent);
     const buttonRgb = hexToRgb(theme.colors.button);
+    const bgRgb = hexToRgb(theme.colors.background);
     const style = getOrCreateStyle();
 
     currentTheme = theme;
-    style.textContent = buildThemeCss(theme, accentRgb, buttonRgb);
+    style.textContent = buildThemeCss(theme, accentRgb, buttonRgb, bgRgb);
     document.documentElement.dataset.juliansXtensionActive = "true";
 
-    if (isXHost()) {
-      startXSurfaceObserver();
-      scheduleXSurfacePaint();
-    }
+    startSurfaceObserver();
+    scheduleSurfacePaint();
   }
 
-  function buildThemeCss(theme, accentRgb, buttonRgb) {
+  function buildThemeCss(theme, accentRgb, buttonRgb, bgRgb) {
     const colors = theme.colors;
     const radius = `${theme.radius}px`;
     const fontScale = String(theme.fontScale / 100);
     const spacing = String(theme.spacing / 100);
+    const isDark = luminance(bgRgb) < 0.5;
+    const colorScheme = isDark ? "dark" : "light";
 
     return `
-:root {
+:root, html {
   --jxt-bg: ${colors.background};
   --jxt-surface: ${colors.surface};
   --jxt-text: ${colors.text};
   --jxt-muted: ${colors.mutedText};
   --jxt-accent: ${colors.accent};
-  --jxt-accent-soft: rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, 0.14);
+  --jxt-accent-soft: rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, 0.18);
   --jxt-button: ${colors.button};
-  --jxt-button-soft: rgba(${buttonRgb.r}, ${buttonRgb.g}, ${buttonRgb.b}, 0.16);
+  --jxt-button-soft: rgba(${buttonRgb.r}, ${buttonRgb.g}, ${buttonRgb.b}, 0.18);
   --jxt-button-text: ${colors.buttonText};
   --jxt-border: ${colors.border};
   --jxt-grid-line: color-mix(in srgb, var(--jxt-border) 62%, var(--jxt-text) 38%);
@@ -163,236 +164,367 @@
   --jxt-radius: ${radius};
   --jxt-font-scale: ${fontScale};
   --jxt-spacing: ${spacing};
+  color-scheme: ${colorScheme} !important;
   accent-color: var(--jxt-accent) !important;
+  caret-color: var(--jxt-accent) !important;
 }
 
 html {
-  background: var(--jxt-bg) !important;
+  background-color: var(--jxt-bg) !important;
+  color: var(--jxt-text) !important;
   font-size: calc(100% * var(--jxt-font-scale)) !important;
 }
 
 body {
-  background: var(--jxt-bg) !important;
+  background-color: var(--jxt-bg) !important;
+  background-image: none !important;
   color: var(--jxt-text) !important;
 }
 
-body,
-main,
-[role="main"],
-[data-testid="primaryColumn"],
-[data-testid="sidebarColumn"],
-[data-testid="primaryColumn"] > div,
-[data-testid="sidebarColumn"] > div,
-[data-testid="primaryColumn"] article,
-[data-testid="primaryColumn"] [data-testid="cellInnerDiv"],
-[data-testid="primaryColumn"] [role="tablist"],
-[data-testid="primaryColumn"] [role="tablist"] > div,
-header[role="banner"],
-nav[role="navigation"],
-aside {
+/* Low-specificity universal coverage: gives transparent containers the theme bg
+   and propagates text/border colors without forcing structural divs to a fixed background. */
+:where(div, section, article, aside, header, footer, nav, main, ul, ol, dl, figure, address, hgroup, details, fieldset, [role="region"], [role="group"], [role="banner"], [role="contentinfo"], [role="navigation"], [role="complementary"]) {
+  background-color: transparent;
+  border-color: var(--jxt-border);
+  color: inherit;
+}
+
+/* Force the major layout regions onto the theme background. */
+:where(html, body, main, [role="main"], header[role="banner"], nav[role="navigation"], aside, [role="complementary"], footer[role="contentinfo"]) {
   background-color: var(--jxt-bg) !important;
   color: var(--jxt-text) !important;
 }
 
-[data-testid="sidebarColumn"] section,
-[data-testid="sidebarColumn"] [aria-label],
-[data-testid="sidebarColumn"] [role="complementary"] section,
-[role="complementary"] section,
-aside section,
-[data-testid="primaryColumn"] form,
-[data-testid="primaryColumn"] form > div,
-[data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has(form),
-[data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has([data-testid="tweetTextarea_0"]),
-[data-testid="primaryColumn"] [data-testid="tweetTextarea_0"],
-[data-testid="primaryColumn"] [data-testid="toolBar"],
-[data-testid="primaryColumn"] [data-testid="toolBar"] > div,
-[role="search"],
-[role="search"] *,
-[role="dialog"],
-[role="menu"],
-[role="listbox"],
-[data-testid="HoverCard"],
-[role="tooltip"] {
+/* Cards / dialogs / menus / popovers => surface color */
+:where(
+  [role="dialog"],
+  [role="alertdialog"],
+  [role="menu"],
+  [role="menubar"],
+  [role="listbox"],
+  [role="combobox"],
+  [role="tooltip"],
+  [role="status"],
+  [role="tablist"],
+  dialog,
+  table,
+  thead,
+  tfoot
+),
+[class*="card" i]:not(html):not(body),
+[class*="modal" i]:not(html):not(body),
+[class*="dialog" i]:not(html):not(body),
+[class*="popup" i]:not(html):not(body),
+[class*="popover" i]:not(html):not(body),
+[class*="dropdown" i]:not(html):not(body),
+[class*="tooltip" i]:not(html):not(body),
+[class*="menu" i]:not(html):not(body):not([class*="menubar" i]),
+[class*="panel" i]:not(html):not(body),
+[class*="sheet" i]:not(html):not(body),
+[class*="toast" i]:not(html):not(body) {
   background-color: var(--jxt-surface) !important;
   border-color: var(--jxt-border) !important;
   color: var(--jxt-text) !important;
 }
 
-:where(p, h1, h2, h3, h4, h5, h6, li, label, summary, blockquote, [role="heading"], [data-testid="tweetText"], [data-testid="tweetText"] *),
-[style*="color: rgb(231, 233, 234)"],
-[style*="color:rgb(231,233,234)"],
-[style*="color: rgb(247, 249, 249)"],
-[style*="color:rgb(247,249,249)"] {
-  color: var(--jxt-text) !important;
+/* Typography text color */
+:where(p, h1, h2, h3, h4, h5, h6, span, label, li, dt, dd, blockquote, summary, td, th, caption, figcaption, cite, em, strong, b, i, u, mark, q, abbr, address, pre, code, kbd, samp, var, time, [role="heading"], [role="cell"], [role="rowheader"], [role="columnheader"], [role="listitem"], [contenteditable]) {
+  color: var(--jxt-text);
 }
 
-:where(time, [datetime], small, figcaption, [style*="color: rgb(113, 118, 123)"], [style*="color:rgb(113,118,123)"]),
-[style*="color: rgb(139, 152, 165)"],
-[style*="color:rgb(139,152,165)"] {
-  color: var(--jxt-muted) !important;
+/* Muted text */
+:where(time, [datetime], small, sub, sup, [class*="muted" i], [class*="secondary" i], [class*="subtle" i], [class*="caption" i], [class*="hint" i], [class*="placeholder" i]) {
+  color: var(--jxt-muted);
 }
 
-a[href],
-a:visited,
-[role="link"] {
-  color: var(--jxt-accent) !important;
+/* Links use accent */
+:where(a, a:visited, [role="link"]) {
+  color: var(--jxt-accent);
+  text-decoration-color: var(--jxt-accent);
 }
 
-svg,
-svg * {
-  color: currentColor;
+:where(a:hover, [role="link"]:hover) {
+  color: var(--jxt-accent);
+  filter: brightness(1.15);
 }
 
-input,
-textarea,
-select,
-[contenteditable="true"],
-[data-testid="SearchBox_Search_Input"],
-[data-testid="SearchBox_Search_Input"] *,
-[aria-label="Search query"],
-[aria-label="Search query"] * {
+/* Form controls => surface */
+:where(input, textarea, select, [contenteditable="true"], [contenteditable=""]) {
   background-color: var(--jxt-surface) !important;
-  border-color: var(--jxt-border) !important;
   color: var(--jxt-text) !important;
+  border-color: var(--jxt-border) !important;
+  caret-color: var(--jxt-accent) !important;
+}
+
+:where(input, textarea, select):where(:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="submit"]):not([type="button"]):not([type="reset"])) {
+  border-radius: var(--jxt-radius) !important;
 }
 
 input::placeholder,
-textarea::placeholder {
+textarea::placeholder,
+[contenteditable="true"][data-placeholder]::before {
   color: var(--jxt-muted) !important;
+  opacity: 0.78 !important;
 }
 
 input:focus,
 textarea:focus,
 select:focus,
-[contenteditable="true"]:focus {
+[contenteditable="true"]:focus,
+[contenteditable=""]:focus {
   border-color: var(--jxt-accent) !important;
-  outline: 2px solid var(--jxt-accent) !important;
-  outline-offset: 2px !important;
+  outline: 2px solid var(--jxt-accent-soft) !important;
+  outline-offset: 1px !important;
 }
 
-button,
-[role="button"],
-input[type="button"],
-input[type="reset"],
-input[type="submit"] {
+/* All buttons: shared radius + readable foreground when not overridden by primary rule below */
+:where(button, [role="button"], input[type="button"], input[type="submit"], input[type="reset"]) {
+  border-radius: var(--jxt-radius) !important;
+  accent-color: var(--jxt-accent) !important;
+}
+
+/* Primary / submit buttons: full button colour */
+:where(
+  input[type="submit"],
+  input[type="reset"],
+  button[type="submit"],
+  [role="button"][data-testid*="tweetButton" i],
+  [role="button"][data-testid="SideNav_NewTweet_Button"],
+  [role="button"][data-testid*="confirm" i],
+  [role="button"][data-testid*="follow" i]:not([data-testid*="unfollow" i]),
+  [data-testid="confirmationSheetConfirm"]
+) {
+  background-color: var(--jxt-button) !important;
+  color: var(--jxt-button-text) !important;
   border-color: var(--jxt-button) !important;
+}
+
+:where(
+  input[type="submit"],
+  input[type="reset"],
+  button[type="submit"],
+  [role="button"][data-testid*="tweetButton" i],
+  [role="button"][data-testid="SideNav_NewTweet_Button"],
+  [data-testid="confirmationSheetConfirm"]
+) :where(span, div, p, b, strong, i, em) {
+  color: var(--jxt-button-text) !important;
+}
+
+/* Generic buttons that don't have an explicit background: give them a subtle accent border */
+:where(button:not([style*="background"]):not([class*="icon" i]):not([aria-label]),
+       button[type="button"]:not([style*="background"]):not([class*="icon" i])) {
+  border: 1px solid var(--jxt-border) !important;
+  background-color: var(--jxt-surface) !important;
+  color: var(--jxt-text) !important;
 }
 
 button:not(:disabled):hover,
-[role="button"]:not([aria-disabled="true"]):hover {
-  box-shadow: inset 0 0 0 999px var(--jxt-button-soft) !important;
+[role="button"]:not([aria-disabled="true"]):hover,
+input[type="button"]:not(:disabled):hover,
+input[type="submit"]:not(:disabled):hover,
+input[type="reset"]:not(:disabled):hover {
+  filter: brightness(1.1);
 }
 
-button[type="submit"]:not(:disabled),
-input[type="submit"]:not(:disabled),
-[role="button"][data-testid*="tweetButton" i],
-[role="button"][data-testid="SideNav_NewTweet_Button"],
-[data-testid="confirmationSheetConfirm"] {
-  background-color: var(--jxt-button) !important;
-  border-color: var(--jxt-button) !important;
-  color: var(--jxt-button-text) !important;
+button:disabled,
+[role="button"][aria-disabled="true"],
+input:disabled {
+  opacity: 0.55;
 }
 
-button[type="submit"]:not(:disabled) *,
-input[type="submit"]:not(:disabled) *,
-[role="button"][data-testid*="tweetButton" i] *,
-[role="button"][data-testid="SideNav_NewTweet_Button"] *,
-[data-testid="confirmationSheetConfirm"] * {
-  color: var(--jxt-button-text) !important;
+/* Tables */
+table {
+  background-color: var(--jxt-surface) !important;
+  color: var(--jxt-text) !important;
+  border-color: var(--jxt-border) !important;
 }
 
+tr, td, th {
+  border-color: var(--jxt-border) !important;
+}
+
+thead, tfoot, th {
+  background-color: color-mix(in srgb, var(--jxt-surface) 70%, var(--jxt-bg) 30%) !important;
+  color: var(--jxt-text) !important;
+}
+
+/* Code blocks */
+:where(pre, code, kbd, samp, var) {
+  background-color: var(--jxt-surface) !important;
+  color: var(--jxt-text) !important;
+  border-color: var(--jxt-border) !important;
+  border-radius: var(--jxt-radius);
+}
+
+/* Separators */
+hr, [role="separator"] {
+  background-color: var(--jxt-border) !important;
+  border-color: var(--jxt-border) !important;
+  color: var(--jxt-border) !important;
+}
+
+/* Border radius for media containers */
+:where(img, video, picture, iframe, embed, object, canvas) {
+  border-color: var(--jxt-border);
+}
+
+/* SVG icons inherit colour from their text context */
+svg:not([fill]) {
+  fill: currentColor;
+}
+
+/* Selected / active tab states */
 [role="tab"][aria-selected="true"],
-[role="tab"][aria-selected="true"] *,
 [aria-current="page"],
-[aria-current="page"] *,
+[aria-current="true"],
 [data-state="active"],
-[data-active="true"],
 [aria-pressed="true"] {
-  border-color: var(--jxt-accent) !important;
   color: var(--jxt-accent) !important;
-}
-
-[role="tab"][aria-selected="true"] div,
-[role="tab"][aria-selected="true"] span:last-child,
-[style*="border-color: rgb(29, 155, 240)"],
-[style*="border-color:rgb(29,155,240)"] {
   border-color: var(--jxt-accent) !important;
 }
 
-[style*="color: rgb(29, 155, 240)"],
-[style*="color:rgb(29,155,240)"],
-[style*="fill: rgb(29, 155, 240)"],
-[style*="fill:rgb(29,155,240)"] {
-  color: var(--jxt-accent) !important;
-  fill: var(--jxt-accent) !important;
-}
-
-[style*="background-color: rgb(29, 155, 240)"],
-[style*="background-color:rgb(29,155,240)"] {
+/* Selection */
+::selection {
   background-color: var(--jxt-accent) !important;
+  color: var(--jxt-button-text) !important;
 }
 
-div[style*="background-color: rgb(0, 0, 0)"],
-div[style*="background-color:rgb(0,0,0)"],
-div[style*="background-color: rgba(0, 0, 0"],
-div[style*="background-color:rgba(0,0,0"] {
+/* Scrollbars */
+* {
+  scrollbar-color: var(--jxt-accent) var(--jxt-bg);
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+  background-color: var(--jxt-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--jxt-accent);
+  border: 3px solid var(--jxt-bg);
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--jxt-surface);
+}
+
+::-webkit-scrollbar-corner {
+  background-color: var(--jxt-bg);
+}
+
+/* ---- INLINE STYLE OVERRIDES ----
+   Catch common light/white backgrounds and dark/black text from
+   inline styles that would otherwise win over class-based rules. */
+
+[style*="background-color:#fff" i],
+[style*="background-color: #fff" i],
+[style*="background:#fff" i],
+[style*="background: #fff" i],
+[style*="background-color:white" i],
+[style*="background-color: white" i],
+[style*="background:white" i],
+[style*="background: white" i],
+[style*="background-color: rgb(255, 255, 255)" i],
+[style*="background-color:rgb(255,255,255)" i],
+[style*="background: rgb(255, 255, 255)" i],
+[style*="background:rgb(255,255,255)" i],
+[style*="background-color: rgb(250" i],
+[style*="background-color:rgb(250" i],
+[style*="background-color: rgb(248" i],
+[style*="background-color:rgb(248" i],
+[style*="background-color: rgb(246" i],
+[style*="background-color:rgb(246" i],
+[style*="background-color: rgb(244" i],
+[style*="background-color:rgb(244" i],
+[style*="background-color: rgb(242" i],
+[style*="background-color:rgb(242" i],
+[style*="background-color: rgb(240" i],
+[style*="background-color:rgb(240" i] {
+  background-color: var(--jxt-surface) !important;
+}
+
+[style*="background-color: rgb(0, 0, 0)" i],
+[style*="background-color:rgb(0,0,0)" i],
+[style*="background-color: rgba(0, 0, 0" i],
+[style*="background-color:rgba(0,0,0" i],
+[style*="background-color:#000" i],
+[style*="background-color: #000" i],
+[style*="background:#000" i],
+[style*="background: #000" i],
+[style*="background-color:black" i],
+[style*="background-color: black" i] {
   background-color: var(--jxt-bg) !important;
 }
 
-div[style*="background-color: rgb(22, 24, 28)"],
-div[style*="background-color:rgb(22,24,28)"],
-div[style*="background-color: rgb(32, 35, 39)"],
-div[style*="background-color:rgb(32,35,39)"] {
+[style*="color:#000" i],
+[style*="color: #000" i],
+[style*="color:black" i],
+[style*="color: black" i],
+[style*="color: rgb(0, 0, 0)" i],
+[style*="color:rgb(0,0,0)" i],
+[style*="color: rgb(20" i],
+[style*="color:rgb(20" i],
+[style*="color: rgb(30" i],
+[style*="color:rgb(30" i],
+[style*="color: rgb(33" i],
+[style*="color:rgb(33" i],
+[style*="color: rgb(36" i],
+[style*="color:rgb(36" i],
+[style*="color: rgb(40" i],
+[style*="color:rgb(40" i] {
+  color: var(--jxt-text) !important;
+}
+
+[style*="color: rgb(255, 255, 255)" i],
+[style*="color:rgb(255,255,255)" i],
+[style*="color:#fff" i],
+[style*="color: #fff" i],
+[style*="color:white" i],
+[style*="color: white" i] {
+  color: var(--jxt-text) !important;
+}
+
+/* Accent colour overrides — X.com blue, GitHub blue, common link blues */
+[style*="color: rgb(29, 155, 240)" i],
+[style*="color:rgb(29,155,240)" i],
+[style*="color: rgb(9, 105, 218)" i],
+[style*="color:rgb(9,105,218)" i],
+[style*="color: rgb(0, 122, 255)" i],
+[style*="color:rgb(0,122,255)" i],
+[style*="color: rgb(66, 133, 244)" i],
+[style*="color:rgb(66,133,244)" i] {
+  color: var(--jxt-accent) !important;
+}
+
+[style*="fill: rgb(29, 155, 240)" i],
+[style*="fill:rgb(29,155,240)" i] {
+  fill: var(--jxt-accent) !important;
+}
+
+[style*="background-color: rgb(29, 155, 240)" i],
+[style*="background-color:rgb(29,155,240)" i] {
+  background-color: var(--jxt-accent) !important;
+}
+
+/* X-specific surface neutralisation (kept from previous version) */
+[style*="background-color: rgb(22, 24, 28)" i],
+[style*="background-color:rgb(22,24,28)" i],
+[style*="background-color: rgb(32, 35, 39)" i],
+[style*="background-color:rgb(32,35,39)" i] {
   background-color: var(--jxt-surface) !important;
 }
 
-[data-testid="primaryColumn"] form div[style*="background-color: rgb(0, 0, 0)"],
-[data-testid="primaryColumn"] form div[style*="background-color:rgb(0,0,0)"],
-[data-testid="primaryColumn"] form div[style*="background-color: rgba(0, 0, 0"],
-[data-testid="primaryColumn"] form div[style*="background-color:rgba(0,0,0"],
-[data-testid="primaryColumn"] form [style*="background-color: rgb(0, 0, 0)"],
-[data-testid="primaryColumn"] form [style*="background-color:rgb(0,0,0)"],
-[data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has(form) [style*="background-color: rgb(0, 0, 0)"],
-[data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has(form) [style*="background-color:rgb(0,0,0)"],
-[data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has(form) [style*="background-color: rgba(0, 0, 0"],
-[data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has(form) [style*="background-color:rgba(0,0,0"],
-[data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has([data-testid="tweetTextarea_0"]) [style*="background-color: rgb(0, 0, 0)"],
-[data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has([data-testid="tweetTextarea_0"]) [style*="background-color:rgb(0,0,0)"],
-[data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has([data-testid="tweetTextarea_0"]) [style*="background-color: rgba(0, 0, 0"],
-[data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has([data-testid="tweetTextarea_0"]) [style*="background-color:rgba(0,0,0"],
-[data-testid="sidebarColumn"] section[style*="background-color: rgb(0, 0, 0)"],
-[data-testid="sidebarColumn"] section[style*="background-color:rgb(0,0,0)"],
-[data-testid="sidebarColumn"] section[style*="background-color: rgba(0, 0, 0"],
-[data-testid="sidebarColumn"] section[style*="background-color:rgba(0,0,0"],
-[data-testid="sidebarColumn"] section div[style*="background-color: rgb(0, 0, 0)"],
-[data-testid="sidebarColumn"] section div[style*="background-color:rgb(0,0,0)"],
-[data-testid="sidebarColumn"] section div[style*="background-color: rgba(0, 0, 0"],
-[data-testid="sidebarColumn"] section div[style*="background-color:rgba(0,0,0"],
-[data-testid="sidebarColumn"] section [style*="background-color: rgb(0, 0, 0)"],
-[data-testid="sidebarColumn"] section [style*="background-color:rgb(0,0,0)"],
-[data-testid="sidebarColumn"] [style*="background-color: rgb(0, 0, 0)"],
-[data-testid="sidebarColumn"] [style*="background-color:rgb(0,0,0)"],
-[data-testid="sidebarColumn"] [style*="background-color: rgba(0, 0, 0"],
-[data-testid="sidebarColumn"] [style*="background-color:rgba(0,0,0"],
-[data-testid="sidebarColumn"] [style*="background-color: rgb(0, 0, 0)"]:has(h1, h2, h3, [role="heading"]),
-[data-testid="sidebarColumn"] [style*="background-color:rgb(0,0,0)"]:has(h1, h2, h3, [role="heading"]),
-[role="complementary"] section[style*="background-color: rgb(0, 0, 0)"],
-[role="complementary"] section[style*="background-color:rgb(0,0,0)"],
-[role="complementary"] section [style*="background-color: rgb(0, 0, 0)"],
-[role="complementary"] section [style*="background-color:rgb(0,0,0)"],
-aside section[style*="background-color: rgb(0, 0, 0)"],
-aside section[style*="background-color:rgb(0,0,0)"],
-aside section [style*="background-color: rgb(0, 0, 0)"],
-aside section [style*="background-color:rgb(0,0,0)"] {
-  background-color: var(--jxt-surface) !important;
-}
-
-[style*="border-color: rgb(47, 51, 54)"],
-[style*="border-color:rgb(47,51,54)"],
-[style*="border-color: rgb(56, 68, 77)"],
-[style*="border-color:rgb(56,68,77)"] {
+[style*="border-color: rgb(47, 51, 54)" i],
+[style*="border-color:rgb(47,51,54)" i],
+[style*="border-color: rgb(56, 68, 77)" i],
+[style*="border-color:rgb(56,68,77)" i] {
   border-color: var(--jxt-border) !important;
 }
+
+/* ---- X.com layout polish (only matches on x.com / twitter.com) ---- */
 
 [data-testid="primaryColumn"] {
   border-left: 1px solid var(--jxt-grid-line) !important;
@@ -428,111 +560,87 @@ aside section [style*="background-color:rgb(0,0,0)"] {
   background: var(--jxt-grid-line) !important;
 }
 
-[data-testid="primaryColumn"] [data-testid="cellInnerDiv"] + [data-testid="cellInnerDiv"] {
-  border-top: 1px solid color-mix(in srgb, var(--jxt-grid-line) 78%, transparent) !important;
-}
-
-[data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has(article) {
-  min-height: 1px;
-}
-
-[data-testid="primaryColumn"] article [role="link"]:has(img),
-[data-testid="primaryColumn"] article [data-testid="card.wrapper"],
-[data-testid="primaryColumn"] article [data-testid="tweet"] {
-  border-color: var(--jxt-grid-line) !important;
-}
-
-hr,
-[role="separator"],
-:where(article, section, aside, nav, header, footer, input, textarea, select) {
-  border-color: var(--jxt-border) !important;
-}
-
-:where(button, [role="button"], input, textarea, select, article, [role="dialog"], [role="menu"], img, video) {
-  border-radius: var(--jxt-radius) !important;
-}
-
-[data-testid="primaryColumn"] article,
-[data-testid="primaryColumn"] [data-testid="cellInnerDiv"] {
-  padding-block: calc(8px * var(--jxt-spacing)) !important;
-}
-
-:where(button, [role="button"]) {
-  padding-inline: calc(14px * var(--jxt-spacing));
-}
-
 [data-testid="tweetText"],
 [data-testid="tweetText"] * {
   font-size: calc(15px * var(--jxt-font-scale)) !important;
   line-height: 1.45 !important;
 }
 
-progress,
-meter {
-  accent-color: var(--jxt-accent) !important;
+/* Layout spacing */
+:where(button, [role="button"]) {
+  padding-inline: calc(14px * var(--jxt-spacing));
 }
 
-::selection {
-  background: var(--jxt-accent-soft) !important;
-  color: var(--jxt-text) !important;
-}
-
-* {
-  scrollbar-color: var(--jxt-accent) var(--jxt-bg);
+/* Border radius universal */
+:where(button, [role="button"], input, textarea, select, [role="dialog"], [role="menu"], img, video, picture) {
+  border-radius: var(--jxt-radius);
 }
 `;
   }
 
   function clearTheme() {
     document.getElementById(STYLE_ID)?.remove();
-    stopXSurfaceObserver();
-    restoreXPaintedSurfaces();
+    stopSurfaceObserver();
+    restorePaintedSurfaces();
     currentTheme = null;
     delete document.documentElement.dataset.juliansXtensionActive;
   }
 
-  function startXSurfaceObserver() {
-    if (xSurfaceObserver || !document.documentElement) {
+  function startSurfaceObserver() {
+    if (surfaceObserver || !document.documentElement) {
       return;
     }
 
-    xSurfaceObserver = new MutationObserver(() => {
-      scheduleXSurfacePaint();
+    surfaceObserver = new MutationObserver(() => {
+      scheduleSurfacePaint();
     });
-    xSurfaceObserver.observe(document.documentElement, {
+    surfaceObserver.observe(document.documentElement, {
       childList: true,
       subtree: true
     });
   }
 
-  function stopXSurfaceObserver() {
-    window.clearTimeout(xRepaintTimer);
-    xRepaintTimer = null;
+  function stopSurfaceObserver() {
+    window.clearTimeout(repaintTimer);
+    repaintTimer = null;
 
-    if (xSurfaceObserver) {
-      xSurfaceObserver.disconnect();
-      xSurfaceObserver = null;
+    if (surfaceObserver) {
+      surfaceObserver.disconnect();
+      surfaceObserver = null;
     }
   }
 
-  function scheduleXSurfacePaint() {
-    if (!currentTheme || !isXHost()) {
+  function scheduleSurfacePaint() {
+    if (!currentTheme) {
       return;
     }
 
-    window.clearTimeout(xRepaintTimer);
-    xRepaintTimer = window.setTimeout(() => {
-      paintXDynamicSurfaces(currentTheme);
-    }, 80);
+    window.clearTimeout(repaintTimer);
+    repaintTimer = window.setTimeout(() => {
+      paintDynamicSurfaces(currentTheme);
+    }, 90);
   }
 
-  function paintXDynamicSurfaces(theme) {
+  function paintDynamicSurfaces(theme) {
     if (!document.body) {
       return;
     }
 
+    const bgRgb = hexToRgb(theme.colors.background);
+    const bgIsDark = luminance(bgRgb) < 0.5;
+
     pruneDisconnectedPaintedElements();
-    for (const element of xPaintedElements) {
+
+    if (isXHost()) {
+      paintXSurfaces(theme);
+      return;
+    }
+
+    paintGenericSurfaces(theme, bgIsDark);
+  }
+
+  function paintXSurfaces(theme) {
+    for (const element of paintedElements) {
       paintSurfaceElement(element, theme.colors.surface);
     }
 
@@ -540,7 +648,7 @@ meter {
       paintSurfaceElement(root, theme.colors.surface);
 
       for (const element of root.querySelectorAll("*")) {
-        if (shouldPaintXSurface(element)) {
+        if (isElementBackgroundNearBlack(element)) {
           paintSurfaceElement(element, theme.colors.surface);
         }
       }
@@ -549,32 +657,6 @@ meter {
     for (const element of getXLayoutSurfaceCandidates()) {
       paintSurfaceElement(element, theme.colors.surface);
     }
-  }
-
-  function getXSurfaceRoots() {
-    return document.querySelectorAll([
-      '[data-testid="primaryColumn"] form',
-      '[data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has(form)',
-      '[data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has([data-testid="tweetTextarea_0"])',
-      '[data-testid="sidebarColumn"] section',
-      '[data-testid="sidebarColumn"] [role="complementary"]',
-      '[role="complementary"] section',
-      'aside section'
-    ].join(","));
-  }
-
-  function shouldPaintXSurface(element) {
-    if (!(element instanceof HTMLElement)) {
-      return false;
-    }
-
-    const box = element.getBoundingClientRect();
-    if (box.width < 12 || box.height < 8) {
-      return false;
-    }
-
-    const background = window.getComputedStyle(element).backgroundColor;
-    return isNearBlackBackground(background);
   }
 
   function getXLayoutSurfaceCandidates() {
@@ -593,7 +675,7 @@ meter {
     ].join(",");
 
     for (const element of document.querySelectorAll(selectors)) {
-      if (!shouldPaintXSurface(element)) {
+      if (!isElementBackgroundNearBlack(element)) {
         continue;
       }
 
@@ -633,8 +715,136 @@ meter {
       box.height >= 8;
   }
 
-  function isNearBlackBackground(value) {
-    const rgb = parseRgb(value);
+  function paintGenericSurfaces(theme, bgIsDark) {
+    if (!bgIsDark) {
+      return;
+    }
+
+    const selectors = [
+      "header",
+      "nav",
+      "main",
+      "section",
+      "article",
+      "aside",
+      "footer",
+      "form",
+      "table",
+      "thead",
+      "tbody",
+      '[role="banner"]',
+      '[role="navigation"]',
+      '[role="main"]',
+      '[role="complementary"]',
+      '[role="contentinfo"]',
+      '[role="region"]',
+      '[role="group"]',
+      '[role="dialog"]',
+      '[role="menu"]',
+      '[role="listbox"]',
+      '[class*="header" i]',
+      '[class*="nav" i]',
+      '[class*="card" i]',
+      '[class*="panel" i]',
+      '[class*="container" i]',
+      '[class*="content" i]',
+      '[class*="wrapper" i]',
+      '[class*="sidebar" i]',
+      '[class*="modal" i]',
+      '[class*="dialog" i]',
+      '[class*="dropdown" i]',
+      '[class*="popover" i]',
+      '[class*="tooltip" i]'
+    ].join(",");
+
+    const elements = document.querySelectorAll(selectors);
+    let painted = 0;
+    const maxToPaint = 800;
+
+    for (const element of elements) {
+      if (painted >= maxToPaint) {
+        break;
+      }
+
+      if (paintedElements.has(element)) {
+        paintSurfaceElement(element, pickSurfaceColor(element, theme));
+        painted++;
+        continue;
+      }
+
+      if (!isElementBackgroundLight(element)) {
+        continue;
+      }
+
+      const box = element.getBoundingClientRect();
+      if (box.width < 24 || box.height < 12) {
+        continue;
+      }
+
+      paintSurfaceElement(element, pickSurfaceColor(element, theme));
+      painted++;
+    }
+  }
+
+  function pickSurfaceColor(element, theme) {
+    const parent = element.parentElement;
+    if (!parent) {
+      return theme.colors.surface;
+    }
+
+    const parentBg = window.getComputedStyle(parent).backgroundColor;
+    const parentRgb = parseRgb(parentBg);
+    const bgRgb = hexToRgb(theme.colors.background);
+
+    if (parentRgb && colorsCloseEnough(parentRgb, bgRgb)) {
+      return theme.colors.surface;
+    }
+
+    return theme.colors.background;
+  }
+
+  function colorsCloseEnough(a, b) {
+    return Math.abs(a.r - b.r) < 12 && Math.abs(a.g - b.g) < 12 && Math.abs(a.b - b.b) < 12;
+  }
+
+  function getXSurfaceRoots() {
+    return document.querySelectorAll([
+      '[data-testid="primaryColumn"] form',
+      '[data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has(form)',
+      '[data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has([data-testid="tweetTextarea_0"])',
+      '[data-testid="sidebarColumn"] section',
+      '[data-testid="sidebarColumn"] [role="complementary"]',
+      '[role="complementary"] section',
+      'aside section'
+    ].join(","));
+  }
+
+  function isElementBackgroundLight(element) {
+    if (!(element instanceof HTMLElement)) {
+      return false;
+    }
+
+    const background = window.getComputedStyle(element).backgroundColor;
+    const rgb = parseRgb(background);
+    if (!rgb || rgb.a === 0) {
+      return false;
+    }
+
+    return luminance(rgb) > 0.55;
+  }
+
+  function isElementBackgroundNearBlack(element) {
+    if (!(element instanceof HTMLElement)) {
+      return false;
+    }
+
+    const box = element.getBoundingClientRect();
+    if (box.width < 12 || box.height < 8) {
+      return false;
+    }
+
+    const background = window.getComputedStyle(element).backgroundColor;
+    const rgb = parseRgb(background);
     if (!rgb || rgb.a === 0) {
       return false;
     }
@@ -659,6 +869,14 @@ meter {
     };
   }
 
+  function luminance({ r, g, b }) {
+    const channel = (value) => {
+      const v = value / 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    };
+    return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+  }
+
   function paintSurfaceElement(element, color) {
     if (!(element instanceof HTMLElement)) {
       return;
@@ -672,11 +890,11 @@ meter {
 
     element.dataset.jxtDynamicSurface = "true";
     element.style.setProperty("background-color", color, "important");
-    xPaintedElements.add(element);
+    paintedElements.add(element);
   }
 
-  function restoreXPaintedSurfaces() {
-    for (const element of xPaintedElements) {
+  function restorePaintedSurfaces() {
+    for (const element of paintedElements) {
       if (!(element instanceof HTMLElement)) {
         continue;
       }
@@ -696,13 +914,13 @@ meter {
       delete element.dataset.jxtDynamicSurface;
     }
 
-    xPaintedElements.clear();
+    paintedElements.clear();
   }
 
   function pruneDisconnectedPaintedElements() {
-    for (const element of xPaintedElements) {
+    for (const element of paintedElements) {
       if (!element.isConnected) {
-        xPaintedElements.delete(element);
+        paintedElements.delete(element);
       }
     }
   }
