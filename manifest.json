@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "JuliansXtension",
-  "description": "Build, save, and apply custom visual themes per website.",
-  "version": "0.4.1",
+  "name": "X Themes by Julian",
+  "description": "Wende eines aus 12 kuratierten Themes auf X.com (Twitter) an. Inspired by X-Dim Mode.",
+  "version": "0.5.0",
   "permissions": [
     "activeTab",
     "scripting",
@@ -10,18 +10,22 @@
     "tabs"
   ],
   "host_permissions": [
-    "http://*/*",
-    "https://*/*"
+    "https://x.com/*",
+    "https://twitter.com/*",
+    "https://*.x.com/*",
+    "https://*.twitter.com/*"
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "JuliansXtension"
+    "default_title": "X Themes"
   },
   "content_scripts": [
     {
       "matches": [
-        "http://*/*",
-        "https://*/*"
+        "https://x.com/*",
+        "https://twitter.com/*",
+        "https://*.x.com/*",
+        "https://*.twitter.com/*"
       ],
       "js": [
         "content.js"

@@ -1,153 +1,26 @@
 <!doctype html>
-<html lang="en">
+<html lang="de">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>JuliansXtension</title>
+    <title>X Themes</title>
     <link rel="stylesheet" href="popup.css">
   </head>
   <body>
-    <main class="popup-shell">
-      <header class="site-header">
-        <div class="site-copy">
-          <p class="eyebrow">JuliansXtension</p>
-          <h1 id="siteName">Loading...</h1>
-          <p id="activeThemeName" class="active-theme">No theme saved</p>
+    <main class="shell">
+      <header class="header">
+        <div class="title-block">
+          <p class="eyebrow">X Themes</p>
+          <h1 id="status">Wähle ein Theme</h1>
+          <p id="hint" class="hint">Klick auf eine Karte, um sie auf X.com anzuwenden.</p>
         </div>
-        <div id="statusDot" class="status-dot" aria-hidden="true"></div>
+        <button id="clearBtn" type="button" class="clear-btn" title="Theme entfernen">Reset</button>
       </header>
 
-      <section class="preview-panel" aria-label="Theme preview">
-        <div class="preview-window">
-          <aside class="preview-rail">
-            <span></span>
-            <span></span>
-            <span></span>
-          </aside>
-          <div class="preview-content">
-            <div class="preview-card">
-              <div class="preview-line strong"></div>
-              <div class="preview-line"></div>
-              <div class="preview-meta"></div>
-            </div>
-            <div class="preview-button"></div>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="section-head">
-          <div>
-            <h2>Presets</h2>
-            <p>Quick-start themes for X and other sites.</p>
-          </div>
-        </div>
-        <div id="presetList" class="theme-list" aria-label="Preset themes"></div>
-      </section>
-
-      <section class="panel">
-        <div class="section-head">
-          <div>
-            <h2>My Themes</h2>
-            <p>Reusable themes saved from the manual editor.</p>
-          </div>
-        </div>
-        <div id="customThemeList" class="theme-list custom-list" aria-label="Custom themes"></div>
-      </section>
-
-      <form id="themeForm" class="theme-form">
-        <section class="panel">
-          <div class="section-head">
-            <div>
-              <h2>Manual Editor</h2>
-              <p>Tweak the selected theme or build a new one.</p>
-            </div>
-          </div>
-
-          <label class="name-field" for="themeName">
-            <span>Theme name</span>
-            <input id="themeName" type="text" maxlength="32" placeholder="My X theme" autocomplete="off">
-          </label>
-
-          <div class="color-grid">
-            <label class="color-field">
-              <span>Background</span>
-              <input type="color" data-color-key="background" value="#15202b">
-              <output data-output-for="background">#15202B</output>
-            </label>
-            <label class="color-field">
-              <span>Surface</span>
-              <input type="color" data-color-key="surface" value="#192734">
-              <output data-output-for="surface">#192734</output>
-            </label>
-            <label class="color-field">
-              <span>Text</span>
-              <input type="color" data-color-key="text" value="#f5f8fa">
-              <output data-output-for="text">#F5F8FA</output>
-            </label>
-            <label class="color-field">
-              <span>Muted</span>
-              <input type="color" data-color-key="mutedText" value="#8899a6">
-              <output data-output-for="mutedText">#8899A6</output>
-            </label>
-            <label class="color-field">
-              <span>Accent</span>
-              <input type="color" data-color-key="accent" value="#1da1f2">
-              <output data-output-for="accent">#1DA1F2</output>
-            </label>
-            <label class="color-field">
-              <span>Button</span>
-              <input type="color" data-color-key="button" value="#1da1f2">
-              <output data-output-for="button">#1DA1F2</output>
-            </label>
-            <label class="color-field">
-              <span>Button text</span>
-              <input type="color" data-color-key="buttonText" value="#ffffff">
-              <output data-output-for="buttonText">#FFFFFF</output>
-            </label>
-            <label class="color-field">
-              <span>Border</span>
-              <input type="color" data-color-key="border" value="#38444d">
-              <output data-output-for="border">#38444D</output>
-            </label>
-          </div>
-        </section>
-
-        <section class="panel compact-panel">
-          <div class="section-head">
-            <h2>Typography</h2>
-            <output id="fontScaleValue" for="fontScale">100%</output>
-          </div>
-          <label class="range-field">
-            <span>Font size</span>
-            <input id="fontScale" type="range" min="85" max="130" step="1" value="100">
-          </label>
-        </section>
-
-        <section class="panel compact-panel">
-          <div class="section-head">
-            <h2>Layout</h2>
-          </div>
-          <label class="range-field">
-            <span>Corner radius <output id="radiusValue" for="radius">16px</output></span>
-            <input id="radius" type="range" min="0" max="28" step="1" value="16">
-          </label>
-          <label class="range-field">
-            <span>Spacing <output id="spacingValue" for="spacing">100%</output></span>
-            <input id="spacing" type="range" min="85" max="120" step="1" value="100">
-          </label>
-        </section>
-
-        <section class="actions">
-          <button id="saveSiteButton" type="submit">Save for site</button>
-          <button id="saveCustomButton" type="button">Save as theme</button>
-          <button id="resetButton" type="button">Reset site</button>
-        </section>
-      </form>
+      <div id="themeList" class="theme-list" aria-label="Themes"></div>
 
       <p id="message" class="message" role="status"></p>
     </main>
-
     <script src="popup.js"></script>
   </body>
 </html>

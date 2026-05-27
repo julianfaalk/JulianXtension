@@ -1,29 +1,23 @@
-# JuliansXtension
+# X Themes by Julian
 
-Manifest V3 Chrome extension for saving a custom visual theme per website.
+A Manifest V3 Chrome extension that applies one of 12 curated themes to **x.com / twitter.com**. Inspired by the *X-Dim Mode* extension, but with a richer preset library.
 
-## Test locally
+## Themes
+
+X Dim, Lights Out, Midnight, Obsidian, Aurora, Ultraviolet, Ember, Rose Noir, Forest, Cyberpunk, Nord, Dracula.
+
+## Install locally
 
 1. Open `chrome://extensions`.
-2. Enable Developer mode.
+2. Enable **Developer mode** (top right).
 3. Click **Load unpacked**.
-4. Select this folder:
+4. Select this folder.
+5. Open `x.com`, click the extension icon, pick a theme.
 
-   `/Users/julianfalk/Documents/Coding/projects/2026/Falk.io/JuliansXtension`
-
-The popup stores one active theme per normalized hostname in `chrome.storage.local`.
-
-Themes currently include background, surface, text, muted text, accent, button, button text, border, font size, corner radius, and spacing controls.
-
-Built-in presets include **X Dim**, Obsidian, Aurora, Ultraviolet, Ember, and Rose Noir. Manual edits can also be saved as reusable custom themes under **My Themes**.
-
-Selecting a built-in preset or saved custom theme immediately saves it for the current site. Manual edits are previewed first and become permanent when **Save for site** is clicked.
+The selected theme is saved in `chrome.storage.local` and re-applied automatically on every X tab.
 
 ## Reload after changes
 
-When this unpacked extension changes locally:
-
 1. Open `chrome://extensions`.
-2. Find **JuliansXtension**.
-3. Click the reload icon on its card.
-4. Refresh the website tab.
+2. Click the reload icon on the **X Themes by Julian** card.
+3. Refresh any open X tab.
