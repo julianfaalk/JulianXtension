@@ -271,35 +271,120 @@ aside section,
   color: var(--xt-text) !important;
 }
 
-/* Composer / tweet textarea / toolbar => match the timeline bg, NOT surface.
-   Default X.com keeps the composer flat with the timeline; surface here
-   makes it look like a misplaced light tile. Applies to BOTH the inline
-   home-page composer AND the standalone /compose/post modal. */
+/* ============================================================
+   COMPOSE / TWEET TEXTAREA / TOOLBAR
+   Force everything in the compose area flush with --xt-bg so the
+   textarea reads as a single seamless surface, not a stack of
+   slightly-different-coloured tiles. Three layers of coverage:
+     1. Dialog/form wrappers (outer)
+     2. Toolbar (bottom)
+     3. tweetTextarea_0 + Draft.js editor classes (inner)
+   ============================================================ */
+
+/* --- Layer 1: outer wrappers --- */
 [data-testid="primaryColumn"] form,
 [data-testid="primaryColumn"] form > div,
 [data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has(form),
 [data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has([data-testid="tweetTextarea_0"]),
-[data-testid="primaryColumn"] [data-testid="toolBar"],
-[data-testid="primaryColumn"] [data-testid="toolBar"] > div,
-/* Standalone compose dialog (x.com/compose/post or modal triggered from
-   the Post button) — :has() bumps specificity over the generic
-   [role="dialog"] => surface rule above. */
 [role="dialog"]:has([data-testid="tweetTextarea_0"]),
 [role="dialog"]:has([data-testid="tweetTextarea_0"]) > div,
 [role="dialog"]:has([data-testid="tweetTextarea_0"]) > div > div,
 [role="dialog"]:has([data-testid="tweetTextarea_0"]) [data-testid="toolBar"],
-/* The textarea container itself everywhere (data-testid wins over
-   [contenteditable] surface rule via higher specificity). */
-[data-testid="tweetTextarea_0"],
-[data-testid="tweetTextarea_0"] > div,
-[data-testid="tweetTextarea_0"] [contenteditable],
-[data-testid="tweetTextarea_0"] [contenteditable] > div,
-[data-testid="tweetTextarea_0"] div[data-contents],
-[data-testid="tweetTextareaRootContainer"],
-[data-testid="tweetTextareaRootContainer"] > div {
+[data-testid="primaryColumn"] [data-testid="toolBar"],
+[data-testid="primaryColumn"] [data-testid="toolBar"] > div {
   background-color: var(--xt-bg) !important;
+  background: var(--xt-bg) !important;
   border-color: var(--xt-border) !important;
   color: var(--xt-text) !important;
+}
+
+/* --- Layer 2: ALL descendants of the textarea container (Draft.js
+       editor + every intermediate spacer/wrapper, regardless of
+       which inline style or hashed class X.com applies). --- */
+[data-testid="tweetTextarea_0"],
+[data-testid="tweetTextarea_0"] > div,
+[data-testid="tweetTextarea_0"] > div > div,
+[data-testid="tweetTextarea_0"] > div > div > div,
+[data-testid="tweetTextarea_0"] [contenteditable],
+[data-testid="tweetTextarea_0"] [contenteditable] > div,
+[data-testid="tweetTextarea_0"] [contenteditable] div[data-contents],
+[data-testid="tweetTextarea_0RichTextInputContainer"],
+[data-testid="tweetTextarea_0RichTextInputContainer"] > div,
+[data-testid="tweetTextarea_0RichTextInputContainer"] > div > div,
+[data-testid="tweetTextareaRootContainer"],
+[data-testid="tweetTextareaRootContainer"] > div,
+[data-testid="tweetTextareaRootContainer"] > div > div,
+.DraftEditor-root,
+.DraftEditor-editorContainer,
+.public-DraftEditor-content,
+.public-DraftEditor-content > div,
+.public-DraftEditorPlaceholder-root,
+.public-DraftEditorPlaceholder-inner {
+  background-color: var(--xt-bg) !important;
+  background: var(--xt-bg) !important;
+  border-color: transparent !important;
+}
+
+/* Placeholder text inside the empty composer */
+.public-DraftEditorPlaceholder-root,
+.public-DraftEditorPlaceholder-inner,
+[data-testid="tweetTextarea_0"] .public-DraftEditorPlaceholder-inner {
+  color: var(--xt-muted) !important;
+}
+
+/* Belt-and-braces: kill any inset shadow / outline / filter on editor
+   containers (not their text children) that X.com might use to create
+   a "lighter inset" effect. */
+[data-testid="tweetTextarea_0"],
+[data-testid="tweetTextarea_0"] > div,
+[data-testid="tweetTextarea_0"] > div > div,
+[data-testid="tweetTextarea_0RichTextInputContainer"],
+[data-testid="tweetTextarea_0RichTextInputContainer"] > div,
+.DraftEditor-root,
+.DraftEditor-editorContainer,
+.public-DraftEditor-content {
+  box-shadow: none !important;
+  outline: none !important;
+  filter: none !important;
+}
+
+/* --- Layer 3: subtle compose-area polish --- */
+
+/* Soft accent rail under the textarea content when something is typed */
+[data-testid="tweetTextarea_0"]:focus-within {
+  position: relative;
+}
+
+[data-testid="tweetTextarea_0"]:focus-within::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--xt-accent) 30%,
+    var(--xt-accent) 70%,
+    transparent 100%
+  );
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* The "Drafts" link in compose dialog top-right uses an inline color
+   that we want as accent, not link color */
+[role="dialog"]:has([data-testid="tweetTextarea_0"]) [role="button"][aria-label*="Drafts" i],
+[role="dialog"]:has([data-testid="tweetTextarea_0"]) a[href*="/compose/drafts"] {
+  color: var(--xt-accent) !important;
+}
+
+/* Reply-settings pill ("Everyone can reply") sits below the textarea —
+   give it the page bg and a hairline border for cohesion */
+[role="dialog"]:has([data-testid="tweetTextarea_0"]) [aria-label*="reply" i][role="button"]:not([data-testid*="Post" i]) {
+  background-color: transparent !important;
+  border-color: transparent !important;
 }
 
 /* Embedded quote-tweet cards inside an article keep the page bg so they
@@ -616,6 +701,54 @@ svg {
     for (const element of getLayoutSurfaceCandidates()) {
       paintElement(element, preset.colors.surface);
     }
+
+    /* CSS alone can't beat unknown class-based backgrounds X.com applies
+       to the compose textarea wrappers, so walk the compose subtree and
+       force every container to the page bg via inline style. */
+    flattenComposeArea(preset);
+  }
+
+  function flattenComposeArea(preset) {
+    const composers = document.querySelectorAll(
+      '[data-testid="tweetTextarea_0"], [data-testid="tweetTextarea_0RichTextInputContainer"]'
+    );
+
+    for (const composer of composers) {
+      /* Walk down: force bg on every div descendant of the textarea root */
+      paintComposeNode(composer, preset.colors.background);
+      for (const el of composer.querySelectorAll("div")) {
+        paintComposeNode(el, preset.colors.background);
+      }
+
+      /* Walk up to the closest dialog or composer cell, painting each
+         intermediate container so the textarea sits in a uniform block. */
+      let el = composer.parentElement;
+      let depth = 0;
+      while (el && depth < 5) {
+        paintComposeNode(el, preset.colors.background);
+        if (el.matches('[role="dialog"]')) {
+          break;
+        }
+        if (el.matches('[data-testid="cellInnerDiv"]')) {
+          break;
+        }
+        el = el.parentElement;
+        depth++;
+      }
+    }
+  }
+
+  function paintComposeNode(element, color) {
+    if (!(element instanceof HTMLElement)) {
+      return;
+    }
+    /* Don't paint over elements that intentionally carry a different
+       background — interactive controls, media, icons. */
+    if (element.matches('[role="button"], button, img, svg, video, [data-testid="DropdownButton"], [data-testid="reply-settings"] [role="button"]')) {
+      return;
+    }
+    element.style.setProperty("background-color", color, "important");
+    element.style.setProperty("background-image", "none", "important");
   }
 
   function getSurfaceRoots() {

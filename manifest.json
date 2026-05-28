@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Julians Tweaks",
   "description": "Annoyance-Killer für X, YouTube, Google, LinkedIn, Reddit, GitHub & Instagram unter einem Popup.",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "permissions": [
     "activeTab",
     "scripting",
