@@ -348,31 +348,6 @@ aside section,
   filter: none !important;
 }
 
-/* --- Layer 3: subtle compose-area polish --- */
-
-/* Soft accent rail under the textarea content when something is typed */
-[data-testid="tweetTextarea_0"]:focus-within {
-  position: relative;
-}
-
-[data-testid="tweetTextarea_0"]:focus-within::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -2px;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--xt-accent) 30%,
-    var(--xt-accent) 70%,
-    transparent 100%
-  );
-  opacity: 0.6;
-  pointer-events: none;
-}
-
 /* The "Drafts" link in compose dialog top-right uses an inline color
    that we want as accent, not link color */
 [role="dialog"]:has([data-testid="tweetTextarea_0"]) [role="button"][aria-label*="Drafts" i],
@@ -381,7 +356,7 @@ aside section,
 }
 
 /* Reply-settings pill ("Everyone can reply") sits below the textarea —
-   give it the page bg and a hairline border for cohesion */
+   give it transparent bg so it inherits the compose bg cleanly */
 [role="dialog"]:has([data-testid="tweetTextarea_0"]) [aria-label*="reply" i][role="button"]:not([data-testid*="Post" i]) {
   background-color: transparent !important;
   border-color: transparent !important;
