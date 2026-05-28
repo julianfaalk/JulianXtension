@@ -1,16 +1,19 @@
 # Julians Tweaks
 
-A Manifest V3 Chrome extension that bundles multiple per-site tweaks under one popup.
+A Manifest V3 Chrome extension that bundles **6 per-site tweaks** under one popup.
 
 ## Apps
 
-### 1. X Themes
-Apply one of 12 curated themes to **x.com / twitter.com**. Inspired by *X-Dim Mode*.
+| App | What it does |
+|---|---|
+| **X Themes** | Apply one of 12 curated themes to x.com / twitter.com |
+| **YouTube** | Hide Shorts (sidebar, home, search, watch page, channel tabs) |
+| **Google** | Hide AI Overviews + Sponsored ads on Google Search |
+| **LinkedIn** | Hide Promoted posts + News rail on the right |
+| **Reddit** | Hide Promoted posts + Recommended subreddits |
+| **GitHub** | Hide Copilot CTAs + Sponsor buttons |
 
-Presets: X Dim, Lights Out, Midnight, Obsidian, Aurora, Ultraviolet, Ember, Rose Noir, Forest, Cyberpunk, Nord, Dracula.
-
-### 2. YouTube
-Hide YouTube Shorts everywhere — sidebar, home shelves, search, watch-page sidebar, channel tabs, mobile pivot bar. Single toggle.
+Settings persist in `chrome.storage.local`. Each app's content script listens for storage changes — toggling propagates to all open matching tabs.
 
 ## Install locally
 
@@ -18,20 +21,37 @@ Hide YouTube Shorts everywhere — sidebar, home shelves, search, watch-page sid
 2. Enable **Developer mode** (top right).
 3. Click **Load unpacked**.
 4. Select this folder.
-
-The popup shows two tabs (**X Themes**, **YouTube**); pick the app, change the setting, switch tabs to configure the other. State persists in `chrome.storage.local`.
+5. Open the popup, switch between app tabs, flip toggles.
 
 ## Reload after changes
 
-1. `chrome://extensions`.
-2. Click the reload icon on the **Julians Tweaks** card.
-3. Refresh any open X / YouTube tabs.
+1. `chrome://extensions`
+2. Reload icon on the **Julians Tweaks** card
+3. Refresh any open target tabs
+
+## Architecture
+
+```
+manifest.json        — Lists hosts + content scripts per app
+popup.html / .css    — Tabbed popup UI (3×2 grid of apps)
+popup.js             — Tab routing + per-app init() + storage writes
+content.js           — X.com theme application
+youtube.js           — YouTube Shorts hiding
+google.js            — Google AI-Overview / Sponsored hiding
+linkedin.js          — LinkedIn promoted / news rail hiding
+reddit.js            — Reddit promoted / recommendations hiding
+github.js            — GitHub Copilot / Sponsors hiding
+```
+
+Each app's content script follows the same shape:
+- Pre-injects a `<style>` with rules scoped to a root class on `<html>`
+- Toggles the root class to enable / disable a setting
+- Listens for `chrome.runtime.onMessage` (popup → tab) and `chrome.storage.onChanged` (cross-tab fanout)
 
 ## Adding more apps
 
-Each app is one content script + one section in `popup.html` + one init function in `popup.js`. Pattern:
-
-- Add the new host to `host_permissions` and a new entry in `content_scripts` in `manifest.json`.
-- Create `<your-app>.js` content script with a message listener and a `chrome.storage.onChanged` listener.
-- Add a `<section class="pane" data-app="...">` in `popup.html` and a tab button in `<nav class="tabs">`.
-- Add an `init<App>()` in `popup.js` and call it from `init()`.
+1. Add the host(s) to `manifest.json` (`host_permissions` + a new `content_scripts` entry)
+2. Create `<app>.js` content script with the same shape as `youtube.js`
+3. Add a `<section class="pane" data-app="...">` in `popup.html` and a tab button in `<nav class="tabs">`
+4. Add `init<App>()` in `popup.js` and call it from `init()`
+5. Add the app's metadata to the `APP_META` object in `popup.js`

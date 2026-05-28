@@ -57,7 +57,7 @@ body {
 
 .tabs {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 3px;
   padding: 3px;
   border: 1px solid var(--line);
@@ -69,11 +69,11 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  min-height: 34px;
-  padding: 6px 10px;
+  gap: 5px;
+  min-height: 32px;
+  padding: 4px 6px;
   border: 0;
-  border-radius: 9px;
+  border-radius: 8px;
   background: transparent;
   color: var(--muted);
   font: inherit;
@@ -98,13 +98,37 @@ body {
 }
 
 .tab-icon {
-  font-size: 14px;
+  flex: 0 0 auto;
+  width: 16px;
+  text-align: center;
+  font-size: 12.5px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
   line-height: 1;
+  color: var(--text);
+  opacity: 0.72;
+}
+
+.tab.is-active .tab-icon {
+  opacity: 1;
+  color: var(--accent);
 }
 
 .tab-label {
-  font-size: 12px;
+  font-size: 11px;
   letter-spacing: -0.005em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10.5px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--panel-strong);
+  color: color-mix(in srgb, var(--accent) 70%, var(--text) 30%);
 }
 
 /* ---- Panes ---- */

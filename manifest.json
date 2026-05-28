@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Julians Tweaks",
-  "description": "X.com Themes + YouTube Shorts ausblenden. Mehrere App-Tweaks unter einer Extension.",
-  "version": "0.6.0",
+  "description": "Annoyance-Killer für X, YouTube, Google, LinkedIn, Reddit & GitHub unter einem Popup.",
+  "version": "0.7.0",
   "permissions": [
     "activeTab",
     "scripting",
@@ -16,7 +16,19 @@
     "https://*.twitter.com/*",
     "https://www.youtube.com/*",
     "https://m.youtube.com/*",
-    "https://music.youtube.com/*"
+    "https://music.youtube.com/*",
+    "https://www.google.com/*",
+    "https://www.google.de/*",
+    "https://www.google.co.uk/*",
+    "https://www.google.at/*",
+    "https://www.google.ch/*",
+    "https://www.linkedin.com/*",
+    "https://*.linkedin.com/*",
+    "https://www.reddit.com/*",
+    "https://old.reddit.com/*",
+    "https://new.reddit.com/*",
+    "https://github.com/*",
+    "https://gist.github.com/*"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -30,9 +42,7 @@
         "https://*.x.com/*",
         "https://*.twitter.com/*"
       ],
-      "js": [
-        "content.js"
-      ],
+      "js": ["content.js"],
       "run_at": "document_start"
     },
     {
@@ -40,9 +50,42 @@
         "https://www.youtube.com/*",
         "https://m.youtube.com/*"
       ],
-      "js": [
-        "youtube.js"
+      "js": ["youtube.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://www.google.com/search*",
+        "https://www.google.de/search*",
+        "https://www.google.co.uk/search*",
+        "https://www.google.at/search*",
+        "https://www.google.ch/search*"
       ],
+      "js": ["google.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://www.linkedin.com/*",
+        "https://*.linkedin.com/*"
+      ],
+      "js": ["linkedin.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://www.reddit.com/*",
+        "https://new.reddit.com/*"
+      ],
+      "js": ["reddit.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://github.com/*",
+        "https://gist.github.com/*"
+      ],
+      "js": ["github.js"],
       "run_at": "document_start"
     }
   ]

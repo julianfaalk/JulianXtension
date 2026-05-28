@@ -1,208 +1,72 @@
 /* -----------------------------------------------------------------
    Julians Tweaks — popup controller
-   Two apps: X Themes, YouTube. Tab UI on top, app-specific logic
-   in initX() / initYouTube(). Shared chrome.storage.local with
-   distinct keys so apps don't collide.
+   6 apps: X Themes, YouTube, Google, LinkedIn, Reddit, GitHub.
+   Each app:
+   - Owns one or more storage keys
+   - Has a content script that listens to chrome.storage.onChanged
+   - Renders a pane in the popup with toggle / chooser UI
    ----------------------------------------------------------------- */
 
 const STORAGE_KEYS = {
+  /* X */
   xActive: "xthemes.active",
+  /* YouTube */
   ytHideShorts: "youtube.hideShorts",
+  /* Google */
+  googleHideAi: "google.hideAiOverview",
+  googleHideSponsored: "google.hideSponsored",
+  /* LinkedIn */
+  linkedinHidePromoted: "linkedin.hidePromoted",
+  linkedinHideNews: "linkedin.hideNewsRail",
+  /* Reddit */
+  redditHidePromoted: "reddit.hidePromoted",
+  redditHideRecs: "reddit.hideRecommendations",
+  /* GitHub */
+  githubHideCopilot: "github.hideCopilot",
+  githubHideSponsors: "github.hideSponsors",
+  /* UI */
   lastApp: "ui.lastApp"
 };
 
+const APP_META = {
+  x:        { hosts: ["x.com", "twitter.com"], script: "content.js",  ping: "XTHEMES_PING" },
+  youtube:  { hosts: ["youtube.com"],          script: "youtube.js",  ping: "JT_YT_PING" },
+  google:   { hosts: ["google.com", "google.de", "google.co.uk", "google.at", "google.ch"], script: "google.js", ping: "JT_GOOGLE_PING" },
+  linkedin: { hosts: ["linkedin.com"],         script: "linkedin.js", ping: "JT_LINKEDIN_PING" },
+  reddit:   { hosts: ["reddit.com"],           script: "reddit.js",   ping: "JT_REDDIT_PING" },
+  github:   { hosts: ["github.com"],           script: "github.js",   ping: "JT_GITHUB_PING" }
+};
+
 const X_MESSAGES = {
-  ping: "XTHEMES_PING",
   applyTheme: "XTHEMES_APPLY",
   clearTheme: "XTHEMES_CLEAR"
 };
 
-const YT_MESSAGES = {
-  ping: "JT_YT_PING",
-  apply: "JT_YT_APPLY"
-};
-
 const PRESETS = [
-  {
-    id: "x-dim",
-    name: "X Dim",
-    tagline: "Klassisches X Dim-Blau",
-    colors: {
-      background: "#15202b",
-      surface: "#1c2733",
-      text: "#f5f8fa",
-      mutedText: "#8899a6",
-      accent: "#1d9bf0",
-      button: "#1d9bf0",
-      buttonText: "#ffffff",
-      border: "#38444d"
-    }
-  },
-  {
-    id: "lights-out",
-    name: "Lights Out",
-    tagline: "Reines Schwarz, weißer Button",
-    colors: {
-      background: "#000000",
-      surface: "#16181c",
-      text: "#e7e9ea",
-      mutedText: "#71767b",
-      accent: "#1d9bf0",
-      button: "#eff3f4",
-      buttonText: "#0f1419",
-      border: "#2f3336"
-    }
-  },
-  {
-    id: "midnight",
-    name: "Midnight",
-    tagline: "Tiefes Mitternachtsblau",
-    colors: {
-      background: "#0a0e1a",
-      surface: "#141b2d",
-      text: "#e8eaf6",
-      mutedText: "#7986cb",
-      accent: "#7986cb",
-      button: "#5c6bc0",
-      buttonText: "#ffffff",
-      border: "#283048"
-    }
-  },
-  {
-    id: "obsidian",
-    name: "Obsidian",
-    tagline: "Schwarz mit Cyan-Akzent",
-    colors: {
-      background: "#05070b",
-      surface: "#101722",
-      text: "#f8fafc",
-      mutedText: "#94a3b8",
-      accent: "#38bdf8",
-      button: "#38bdf8",
-      buttonText: "#00111f",
-      border: "#263244"
-    }
-  },
-  {
-    id: "aurora",
-    name: "Aurora",
-    tagline: "Grünes Leuchten",
-    colors: {
-      background: "#06120f",
-      surface: "#0e231c",
-      text: "#e9fff5",
-      mutedText: "#8bb8a4",
-      accent: "#5eead4",
-      button: "#34d399",
-      buttonText: "#03120d",
-      border: "#21463a"
-    }
-  },
-  {
-    id: "ultraviolet",
-    name: "Ultraviolet",
-    tagline: "Violett auf Tinte",
-    colors: {
-      background: "#0b0a18",
-      surface: "#17142a",
-      text: "#f4f0ff",
-      mutedText: "#a99cc8",
-      accent: "#a78bfa",
-      button: "#7c3aed",
-      buttonText: "#ffffff",
-      border: "#342a59"
-    }
-  },
-  {
-    id: "ember",
-    name: "Ember",
-    tagline: "Warmes Orange",
-    colors: {
-      background: "#15100c",
-      surface: "#241811",
-      text: "#fff4e8",
-      mutedText: "#c19a7a",
-      accent: "#fb923c",
-      button: "#f97316",
-      buttonText: "#160802",
-      border: "#4a2f20"
-    }
-  },
-  {
-    id: "rose-noir",
-    name: "Rose Noir",
-    tagline: "Rosa auf Anthrazit",
-    colors: {
-      background: "#120d12",
-      surface: "#201721",
-      text: "#fff1f8",
-      mutedText: "#b99bab",
-      accent: "#f472b6",
-      button: "#ec4899",
-      buttonText: "#ffffff",
-      border: "#463044"
-    }
-  },
-  {
-    id: "forest",
-    name: "Forest",
-    tagline: "Dunkler Wald",
-    colors: {
-      background: "#0f1611",
-      surface: "#1a2620",
-      text: "#e8f0ea",
-      mutedText: "#7a9785",
-      accent: "#84cc16",
-      button: "#65a30d",
-      buttonText: "#0a0f0b",
-      border: "#2d3e34"
-    }
-  },
-  {
-    id: "cyberpunk",
-    name: "Cyberpunk",
-    tagline: "Neon Pink & Cyan",
-    colors: {
-      background: "#0d0221",
-      surface: "#1a0b3d",
-      text: "#fdf4ff",
-      mutedText: "#c084fc",
-      accent: "#22d3ee",
-      button: "#e879f9",
-      buttonText: "#0d0221",
-      border: "#4c1d95"
-    }
-  },
-  {
-    id: "nord",
-    name: "Nord",
-    tagline: "Cooles Blaugrau",
-    colors: {
-      background: "#2e3440",
-      surface: "#3b4252",
-      text: "#eceff4",
-      mutedText: "#a5adba",
-      accent: "#88c0d0",
-      button: "#5e81ac",
-      buttonText: "#eceff4",
-      border: "#4c566a"
-    }
-  },
-  {
-    id: "dracula",
-    name: "Dracula",
-    tagline: "Lila-Pink Klassiker",
-    colors: {
-      background: "#282a36",
-      surface: "#363948",
-      text: "#f8f8f2",
-      mutedText: "#a8aab5",
-      accent: "#bd93f9",
-      button: "#ff79c6",
-      buttonText: "#282a36",
-      border: "#44475a"
-    }
-  }
+  { id: "x-dim",       name: "X Dim",       tagline: "Klassisches X Dim-Blau",
+    colors: { background: "#15202b", surface: "#1c2733", text: "#f5f8fa", mutedText: "#8899a6", accent: "#1d9bf0", button: "#1d9bf0", buttonText: "#ffffff", border: "#38444d" } },
+  { id: "lights-out",  name: "Lights Out",  tagline: "Reines Schwarz, weißer Button",
+    colors: { background: "#000000", surface: "#16181c", text: "#e7e9ea", mutedText: "#71767b", accent: "#1d9bf0", button: "#eff3f4", buttonText: "#0f1419", border: "#2f3336" } },
+  { id: "midnight",    name: "Midnight",    tagline: "Tiefes Mitternachtsblau",
+    colors: { background: "#0a0e1a", surface: "#141b2d", text: "#e8eaf6", mutedText: "#7986cb", accent: "#7986cb", button: "#5c6bc0", buttonText: "#ffffff", border: "#283048" } },
+  { id: "obsidian",    name: "Obsidian",    tagline: "Schwarz mit Cyan-Akzent",
+    colors: { background: "#05070b", surface: "#101722", text: "#f8fafc", mutedText: "#94a3b8", accent: "#38bdf8", button: "#38bdf8", buttonText: "#00111f", border: "#263244" } },
+  { id: "aurora",      name: "Aurora",      tagline: "Grünes Leuchten",
+    colors: { background: "#06120f", surface: "#0e231c", text: "#e9fff5", mutedText: "#8bb8a4", accent: "#5eead4", button: "#34d399", buttonText: "#03120d", border: "#21463a" } },
+  { id: "ultraviolet", name: "Ultraviolet", tagline: "Violett auf Tinte",
+    colors: { background: "#0b0a18", surface: "#17142a", text: "#f4f0ff", mutedText: "#a99cc8", accent: "#a78bfa", button: "#7c3aed", buttonText: "#ffffff", border: "#342a59" } },
+  { id: "ember",       name: "Ember",       tagline: "Warmes Orange",
+    colors: { background: "#15100c", surface: "#241811", text: "#fff4e8", mutedText: "#c19a7a", accent: "#fb923c", button: "#f97316", buttonText: "#160802", border: "#4a2f20" } },
+  { id: "rose-noir",   name: "Rose Noir",   tagline: "Rosa auf Anthrazit",
+    colors: { background: "#120d12", surface: "#201721", text: "#fff1f8", mutedText: "#b99bab", accent: "#f472b6", button: "#ec4899", buttonText: "#ffffff", border: "#463044" } },
+  { id: "forest",      name: "Forest",      tagline: "Dunkler Wald",
+    colors: { background: "#0f1611", surface: "#1a2620", text: "#e8f0ea", mutedText: "#7a9785", accent: "#84cc16", button: "#65a30d", buttonText: "#0a0f0b", border: "#2d3e34" } },
+  { id: "cyberpunk",   name: "Cyberpunk",   tagline: "Neon Pink & Cyan",
+    colors: { background: "#0d0221", surface: "#1a0b3d", text: "#fdf4ff", mutedText: "#c084fc", accent: "#22d3ee", button: "#e879f9", buttonText: "#0d0221", border: "#4c1d95" } },
+  { id: "nord",        name: "Nord",        tagline: "Cooles Blaugrau",
+    colors: { background: "#2e3440", surface: "#3b4252", text: "#eceff4", mutedText: "#a5adba", accent: "#88c0d0", button: "#5e81ac", buttonText: "#eceff4", border: "#4c566a" } },
+  { id: "dracula",     name: "Dracula",     tagline: "Lila-Pink Klassiker",
+    colors: { background: "#282a36", surface: "#363948", text: "#f8f8f2", mutedText: "#a8aab5", accent: "#bd93f9", button: "#ff79c6", buttonText: "#282a36", border: "#44475a" } }
 ];
 
 const els = {
@@ -215,7 +79,19 @@ const els = {
   xThemeList: document.querySelector("#xThemeList"),
   xClearBtn: document.querySelector("#xClearBtn"),
   /* YouTube */
-  ytHideShorts: document.querySelector("#ytHideShorts")
+  ytHideShorts: document.querySelector("#ytHideShorts"),
+  /* Google */
+  googleHideAi: document.querySelector("#googleHideAi"),
+  googleHideSponsored: document.querySelector("#googleHideSponsored"),
+  /* LinkedIn */
+  linkedinHidePromoted: document.querySelector("#linkedinHidePromoted"),
+  linkedinHideNews: document.querySelector("#linkedinHideNews"),
+  /* Reddit */
+  redditHidePromoted: document.querySelector("#redditHidePromoted"),
+  redditHideRecs: document.querySelector("#redditHideRecs"),
+  /* GitHub */
+  githubHideCopilot: document.querySelector("#githubHideCopilot"),
+  githubHideSponsors: document.querySelector("#githubHideSponsors")
 };
 
 let activeTab = null;
@@ -233,15 +109,18 @@ async function init() {
 
   await initX();
   await initYouTube();
+  await initGoogle();
+  await initLinkedIn();
+  await initReddit();
+  await initGithub();
 
-  /* Restore the last-viewed app, defaulting to whichever host the
-     current tab is on so the popup is immediately useful. */
+  /* Restore last viewed app, but default to whichever the current tab is. */
   const stored = await chrome.storage.local.get({ [STORAGE_KEYS.lastApp]: null });
-  const fromHost = isXHost(activeTabHost) ? "x" : isYouTubeHost(activeTabHost) ? "youtube" : null;
+  const fromHost = appForHost(activeTabHost);
   switchApp(stored[STORAGE_KEYS.lastApp] || fromHost || "x", { persist: false });
 }
 
-/* ---- Tab switching ---- */
+/* ---- Tab routing ---- */
 
 function bindTabs() {
   for (const tab of els.tabs) {
@@ -266,6 +145,16 @@ function switchApp(app, { persist = true } = {}) {
   if (persist) {
     chrome.storage.local.set({ [STORAGE_KEYS.lastApp]: app });
   }
+}
+
+function appForHost(hostname) {
+  const host = String(hostname || "").replace(/^www\./i, "").toLowerCase();
+  for (const [app, meta] of Object.entries(APP_META)) {
+    if (meta.hosts.some((h) => host === h || host.endsWith(`.${h}`))) {
+      return app;
+    }
+  }
+  return null;
 }
 
 /* ---- X Themes ---- */
@@ -342,7 +231,7 @@ function refreshXStatus() {
     els.xStatus.textContent = preset ? `Aktiv: ${preset.name}` : "Aktiv";
   }
 
-  if (isXHost(activeTabHost)) {
+  if (appForHost(activeTabHost) === "x") {
     els.xHint.textContent = "Klick auf eine Karte, um sie auf diesem Tab anzuwenden.";
   } else {
     els.xHint.textContent = "Öffne x.com / twitter.com — Themes greifen dort automatisch.";
@@ -367,11 +256,8 @@ async function onXThemeClick(event) {
   refreshXStatus();
 
   try {
-    if (isXHost(activeTabHost)) {
-      await sendToTab(activeTab.id, {
-        type: X_MESSAGES.applyTheme,
-        preset
-      }, ["content.js"]);
+    if (appForHost(activeTabHost) === "x") {
+      await sendToActiveTab({ type: X_MESSAGES.applyTheme, preset }, "x");
       setMessage(`${preset.name} angewendet`, "success");
     } else {
       setMessage(`${preset.name} gespeichert`, "success");
@@ -389,8 +275,8 @@ async function onXClearClick() {
   refreshXStatus();
 
   try {
-    if (isXHost(activeTabHost)) {
-      await sendToTab(activeTab.id, { type: X_MESSAGES.clearTheme }, ["content.js"]);
+    if (appForHost(activeTabHost) === "x") {
+      await sendToActiveTab({ type: X_MESSAGES.clearTheme }, "x");
     }
     setMessage("Theme entfernt", "success");
   } catch (error) {
@@ -404,60 +290,189 @@ async function initYouTube() {
   const stored = await chrome.storage.local.get({ [STORAGE_KEYS.ytHideShorts]: false });
   els.ytHideShorts.checked = Boolean(stored[STORAGE_KEYS.ytHideShorts]);
 
-  els.ytHideShorts.addEventListener("change", onYtHideShortsChange);
-}
-
-async function onYtHideShortsChange() {
-  const enabled = els.ytHideShorts.checked;
-  await chrome.storage.local.set({ [STORAGE_KEYS.ytHideShorts]: enabled });
-
-  try {
-    if (isYouTubeHost(activeTabHost)) {
-      await sendToTab(activeTab.id, {
-        type: YT_MESSAGES.apply,
-        hideShorts: enabled
-      }, ["youtube.js"]);
-    }
-
-    /* Storage.onChanged listener in youtube.js will propagate to all other
-       open YouTube tabs without us needing to message each one. */
+  els.ytHideShorts.addEventListener("change", async () => {
+    const enabled = els.ytHideShorts.checked;
+    await chrome.storage.local.set({ [STORAGE_KEYS.ytHideShorts]: enabled });
+    await maybeApplyToActiveTab("youtube", {
+      type: "JT_YT_APPLY",
+      hideShorts: enabled
+    });
     setMessage(enabled ? "Shorts ausgeblendet" : "Shorts wieder sichtbar", "success");
-  } catch (error) {
-    setMessage(error.message || "Konnte nicht angewendet werden", "error");
-  }
+  });
 }
 
-/* ---- Tab messaging ---- */
+/* ---- Google ---- */
 
-async function sendToTab(tabId, message, contentScriptFiles) {
-  if (!tabId) {
+async function initGoogle() {
+  const stored = await chrome.storage.local.get({
+    [STORAGE_KEYS.googleHideAi]: false,
+    [STORAGE_KEYS.googleHideSponsored]: false
+  });
+  els.googleHideAi.checked = Boolean(stored[STORAGE_KEYS.googleHideAi]);
+  els.googleHideSponsored.checked = Boolean(stored[STORAGE_KEYS.googleHideSponsored]);
+
+  const broadcast = async () => {
+    await maybeApplyToActiveTab("google", {
+      type: "JT_GOOGLE_APPLY",
+      settings: {
+        hideAiOverview: els.googleHideAi.checked,
+        hideSponsored: els.googleHideSponsored.checked
+      }
+    });
+  };
+
+  els.googleHideAi.addEventListener("change", async () => {
+    await chrome.storage.local.set({ [STORAGE_KEYS.googleHideAi]: els.googleHideAi.checked });
+    await broadcast();
+    setMessage(els.googleHideAi.checked ? "AI-Overviews aus" : "AI-Overviews sichtbar", "success");
+  });
+
+  els.googleHideSponsored.addEventListener("change", async () => {
+    await chrome.storage.local.set({ [STORAGE_KEYS.googleHideSponsored]: els.googleHideSponsored.checked });
+    await broadcast();
+    setMessage(els.googleHideSponsored.checked ? "Anzeigen aus" : "Anzeigen sichtbar", "success");
+  });
+}
+
+/* ---- LinkedIn ---- */
+
+async function initLinkedIn() {
+  const stored = await chrome.storage.local.get({
+    [STORAGE_KEYS.linkedinHidePromoted]: false,
+    [STORAGE_KEYS.linkedinHideNews]: false
+  });
+  els.linkedinHidePromoted.checked = Boolean(stored[STORAGE_KEYS.linkedinHidePromoted]);
+  els.linkedinHideNews.checked = Boolean(stored[STORAGE_KEYS.linkedinHideNews]);
+
+  const broadcast = async () => {
+    await maybeApplyToActiveTab("linkedin", {
+      type: "JT_LINKEDIN_APPLY",
+      settings: {
+        hidePromoted: els.linkedinHidePromoted.checked,
+        hideNewsRail: els.linkedinHideNews.checked
+      }
+    });
+  };
+
+  els.linkedinHidePromoted.addEventListener("change", async () => {
+    await chrome.storage.local.set({ [STORAGE_KEYS.linkedinHidePromoted]: els.linkedinHidePromoted.checked });
+    await broadcast();
+    setMessage(els.linkedinHidePromoted.checked ? "Promoted aus" : "Promoted sichtbar", "success");
+  });
+
+  els.linkedinHideNews.addEventListener("change", async () => {
+    await chrome.storage.local.set({ [STORAGE_KEYS.linkedinHideNews]: els.linkedinHideNews.checked });
+    await broadcast();
+    setMessage(els.linkedinHideNews.checked ? "News-Rail aus" : "News-Rail sichtbar", "success");
+  });
+}
+
+/* ---- Reddit ---- */
+
+async function initReddit() {
+  const stored = await chrome.storage.local.get({
+    [STORAGE_KEYS.redditHidePromoted]: false,
+    [STORAGE_KEYS.redditHideRecs]: false
+  });
+  els.redditHidePromoted.checked = Boolean(stored[STORAGE_KEYS.redditHidePromoted]);
+  els.redditHideRecs.checked = Boolean(stored[STORAGE_KEYS.redditHideRecs]);
+
+  const broadcast = async () => {
+    await maybeApplyToActiveTab("reddit", {
+      type: "JT_REDDIT_APPLY",
+      settings: {
+        hidePromoted: els.redditHidePromoted.checked,
+        hideRecommendations: els.redditHideRecs.checked
+      }
+    });
+  };
+
+  els.redditHidePromoted.addEventListener("change", async () => {
+    await chrome.storage.local.set({ [STORAGE_KEYS.redditHidePromoted]: els.redditHidePromoted.checked });
+    await broadcast();
+    setMessage(els.redditHidePromoted.checked ? "Promoted aus" : "Promoted sichtbar", "success");
+  });
+
+  els.redditHideRecs.addEventListener("change", async () => {
+    await chrome.storage.local.set({ [STORAGE_KEYS.redditHideRecs]: els.redditHideRecs.checked });
+    await broadcast();
+    setMessage(els.redditHideRecs.checked ? "Empfehlungen aus" : "Empfehlungen sichtbar", "success");
+  });
+}
+
+/* ---- GitHub ---- */
+
+async function initGithub() {
+  const stored = await chrome.storage.local.get({
+    [STORAGE_KEYS.githubHideCopilot]: false,
+    [STORAGE_KEYS.githubHideSponsors]: false
+  });
+  els.githubHideCopilot.checked = Boolean(stored[STORAGE_KEYS.githubHideCopilot]);
+  els.githubHideSponsors.checked = Boolean(stored[STORAGE_KEYS.githubHideSponsors]);
+
+  const broadcast = async () => {
+    await maybeApplyToActiveTab("github", {
+      type: "JT_GITHUB_APPLY",
+      settings: {
+        hideCopilot: els.githubHideCopilot.checked,
+        hideSponsors: els.githubHideSponsors.checked
+      }
+    });
+  };
+
+  els.githubHideCopilot.addEventListener("change", async () => {
+    await chrome.storage.local.set({ [STORAGE_KEYS.githubHideCopilot]: els.githubHideCopilot.checked });
+    await broadcast();
+    setMessage(els.githubHideCopilot.checked ? "Copilot aus" : "Copilot sichtbar", "success");
+  });
+
+  els.githubHideSponsors.addEventListener("change", async () => {
+    await chrome.storage.local.set({ [STORAGE_KEYS.githubHideSponsors]: els.githubHideSponsors.checked });
+    await broadcast();
+    setMessage(els.githubHideSponsors.checked ? "Sponsors aus" : "Sponsors sichtbar", "success");
+  });
+}
+
+/* ---- Tab messaging helpers ---- */
+
+/* Send a message to the active tab only if it matches the given app.
+   When the active tab matches but the content script isn't yet present
+   (e.g. first install, dynamic tab created before extension load), we
+   inject the script then retry. */
+async function maybeApplyToActiveTab(app, message) {
+  if (appForHost(activeTabHost) !== app) {
+    return;
+  }
+  await sendToActiveTab(message, app);
+}
+
+async function sendToActiveTab(message, app) {
+  if (!activeTab?.id) {
     return;
   }
 
-  let response = await sendMessage(tabId, { type: pingTypeFor(message.type) });
+  const meta = APP_META[app];
+  if (!meta) {
+    return;
+  }
+
+  let response = await sendMessage(activeTab.id, { type: meta.ping });
 
   if (!response?.ok) {
     try {
       await chrome.scripting.executeScript({
-        target: { tabId },
-        files: contentScriptFiles
+        target: { tabId: activeTab.id },
+        files: [meta.script]
       });
     } catch (_error) {
       throw new Error("Inhaltsskript konnte nicht geladen werden");
     }
   }
 
-  response = await sendMessage(tabId, message);
+  response = await sendMessage(activeTab.id, message);
   if (!response?.ok) {
     throw new Error("Tab nahm das Update nicht an");
   }
-}
-
-function pingTypeFor(messageType) {
-  if (messageType === X_MESSAGES.applyTheme || messageType === X_MESSAGES.clearTheme) {
-    return X_MESSAGES.ping;
-  }
-  return YT_MESSAGES.ping;
 }
 
 function sendMessage(tabId, message) {
@@ -485,20 +500,6 @@ function hostnameOf(url) {
   } catch (_error) {
     return "";
   }
-}
-
-function isXHost(hostname) {
-  const host = String(hostname || "").replace(/^www\./i, "").toLowerCase();
-  return host === "x.com" ||
-    host.endsWith(".x.com") ||
-    host === "twitter.com" ||
-    host.endsWith(".twitter.com");
-}
-
-function isYouTubeHost(hostname) {
-  const host = String(hostname || "").replace(/^www\./i, "").toLowerCase();
-  return host === "youtube.com" ||
-    host.endsWith(".youtube.com");
 }
 
 function setMessage(text, kind = "") {
