@@ -299,12 +299,12 @@ textarea::placeholder {
 
 input:focus,
 textarea:focus,
-select:focus,
-[contenteditable="true"]:focus {
+select:focus {
   border-color: var(--xt-accent) !important;
-  outline: 2px solid var(--xt-accent-soft) !important;
-  outline-offset: 1px !important;
 }
+
+/* Don't add a custom outline on contenteditable composers — X.com renders
+   them inside an already-styled container, the extra outline doubles up. */
 
 /* Primary X buttons: tweet, post, follow, confirm */
 [data-testid="SideNav_NewTweet_Button"],
@@ -338,11 +338,43 @@ input[type="submit"]:not(:disabled) * {
   fill: currentColor;
 }
 
-/* Follow / secondary outlined buttons */
-[data-testid$="-follow"],
+/* Follow button — primary state, filled with button colour */
+[data-testid$="-follow"]:not([data-testid$="-unfollow"]) {
+  background-color: var(--xt-button) !important;
+  color: var(--xt-button-text) !important;
+  border-color: var(--xt-button) !important;
+}
+
+[data-testid$="-follow"]:not([data-testid$="-unfollow"]) :where(span, div, p) {
+  color: var(--xt-button-text) !important;
+}
+
+/* Following / Unfollow button — secondary state, outlined surface */
 [data-testid$="-unfollow"],
-[data-testid="UserCell"] [role="button"] {
+[aria-label^="Following @" i],
+[aria-label*="folge" i][role="button"] {
+  background-color: var(--xt-surface) !important;
+  color: var(--xt-text) !important;
   border-color: var(--xt-border) !important;
+}
+
+[data-testid$="-unfollow"] :where(span, div, p),
+[aria-label^="Following @" i] :where(span, div, p) {
+  color: var(--xt-text) !important;
+}
+
+/* "Subscribe to Premium" / generic primary CTAs that X marks with these testids */
+[data-testid$="-subscribe"],
+[data-testid="SubscribeButton"],
+[data-testid="primary-cta"] {
+  background-color: var(--xt-button) !important;
+  color: var(--xt-button-text) !important;
+  border-color: var(--xt-button) !important;
+}
+
+/* User-cell row hover doesn't override surface */
+[data-testid="UserCell"] {
+  background-color: transparent !important;
 }
 
 /* Active tabs / selected nav items */
