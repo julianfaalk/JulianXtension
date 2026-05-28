@@ -3,21 +3,60 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>X Themes</title>
+    <title>Julians Tweaks</title>
     <link rel="stylesheet" href="popup.css">
   </head>
   <body>
     <main class="shell">
-      <header class="header">
-        <div class="title-block">
-          <p class="eyebrow">X Themes</p>
-          <h1 id="status">Wähle ein Theme</h1>
-          <p id="hint" class="hint">Klick auf eine Karte, um sie auf X.com anzuwenden.</p>
-        </div>
-        <button id="clearBtn" type="button" class="clear-btn" title="Theme entfernen">Reset</button>
+      <header class="brand-bar">
+        <p class="brand">Julians Tweaks</p>
       </header>
 
-      <div id="themeList" class="theme-list" aria-label="Themes"></div>
+      <nav class="tabs" role="tablist" aria-label="Apps">
+        <button type="button" class="tab is-active" role="tab" aria-selected="true" data-app="x">
+          <span class="tab-icon" aria-hidden="true">𝕏</span>
+          <span class="tab-label">X Themes</span>
+        </button>
+        <button type="button" class="tab" role="tab" aria-selected="false" data-app="youtube">
+          <span class="tab-icon" aria-hidden="true">▶</span>
+          <span class="tab-label">YouTube</span>
+        </button>
+      </nav>
+
+      <!-- X Themes pane -->
+      <section class="pane is-active" data-app="x" role="tabpanel">
+        <header class="pane-head">
+          <div class="pane-title-block">
+            <h1 id="xStatus" class="pane-title">Wähle ein Theme</h1>
+            <p id="xHint" class="pane-hint">Klick auf eine Karte, um sie auf x.com anzuwenden.</p>
+          </div>
+          <button type="button" id="xClearBtn" class="ghost-btn" title="Theme entfernen">Reset</button>
+        </header>
+        <div id="xThemeList" class="theme-grid" aria-label="Themes"></div>
+      </section>
+
+      <!-- YouTube pane -->
+      <section class="pane" data-app="youtube" role="tabpanel" hidden>
+        <header class="pane-head">
+          <div class="pane-title-block">
+            <h1 class="pane-title">YouTube</h1>
+            <p class="pane-hint">Tweaks für youtube.com. Wirkt sofort auf alle offenen YouTube-Tabs.</p>
+          </div>
+        </header>
+
+        <label class="setting-row">
+          <span class="setting-text">
+            <span class="setting-title">Shorts ausblenden</span>
+            <span class="setting-sub">Versteckt Shorts in Sidebar, Home-Feed, Suche, Watch-Page-Empfehlungen und Channel-Tabs.</span>
+          </span>
+          <span class="switch">
+            <input type="checkbox" id="ytHideShorts">
+            <span class="switch-track" aria-hidden="true">
+              <span class="switch-thumb"></span>
+            </span>
+          </span>
+        </label>
+      </section>
 
       <p id="message" class="message" role="status"></p>
     </main>

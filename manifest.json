@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "X Themes by Julian",
-  "description": "Wende eines aus 12 kuratierten Themes auf X.com (Twitter) an. Inspired by X-Dim Mode.",
-  "version": "0.5.3",
+  "name": "Julians Tweaks",
+  "description": "X.com Themes + YouTube Shorts ausblenden. Mehrere App-Tweaks unter einer Extension.",
+  "version": "0.6.0",
   "permissions": [
     "activeTab",
     "scripting",
@@ -13,11 +13,14 @@
     "https://x.com/*",
     "https://twitter.com/*",
     "https://*.x.com/*",
-    "https://*.twitter.com/*"
+    "https://*.twitter.com/*",
+    "https://www.youtube.com/*",
+    "https://m.youtube.com/*",
+    "https://music.youtube.com/*"
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "X Themes"
+    "default_title": "Julians Tweaks"
   },
   "content_scripts": [
     {
@@ -29,6 +32,16 @@
       ],
       "js": [
         "content.js"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://www.youtube.com/*",
+        "https://m.youtube.com/*"
+      ],
+      "js": [
+        "youtube.js"
       ],
       "run_at": "document_start"
     }

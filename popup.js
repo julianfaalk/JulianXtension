@@ -1,8 +1,25 @@
-const STORAGE_KEY = "xthemes.active";
-const MESSAGE_TYPES = {
+/* -----------------------------------------------------------------
+   Julians Tweaks — popup controller
+   Two apps: X Themes, YouTube. Tab UI on top, app-specific logic
+   in initX() / initYouTube(). Shared chrome.storage.local with
+   distinct keys so apps don't collide.
+   ----------------------------------------------------------------- */
+
+const STORAGE_KEYS = {
+  xActive: "xthemes.active",
+  ytHideShorts: "youtube.hideShorts",
+  lastApp: "ui.lastApp"
+};
+
+const X_MESSAGES = {
   ping: "XTHEMES_PING",
   applyTheme: "XTHEMES_APPLY",
   clearTheme: "XTHEMES_CLEAR"
+};
+
+const YT_MESSAGES = {
+  ping: "JT_YT_PING",
+  apply: "JT_YT_APPLY"
 };
 
 const PRESETS = [
@@ -189,48 +206,89 @@ const PRESETS = [
 ];
 
 const els = {
-  status: document.querySelector("#status"),
-  hint: document.querySelector("#hint"),
-  themeList: document.querySelector("#themeList"),
-  clearBtn: document.querySelector("#clearBtn"),
-  message: document.querySelector("#message")
+  tabs: document.querySelectorAll(".tab"),
+  panes: document.querySelectorAll(".pane"),
+  message: document.querySelector("#message"),
+  /* X */
+  xStatus: document.querySelector("#xStatus"),
+  xHint: document.querySelector("#xHint"),
+  xThemeList: document.querySelector("#xThemeList"),
+  xClearBtn: document.querySelector("#xClearBtn"),
+  /* YouTube */
+  ytHideShorts: document.querySelector("#ytHideShorts")
 };
 
 let activeTab = null;
-let activeId = null;
-let isXTab = false;
+let activeTabHost = "";
+let xActiveId = null;
+let messageTimer = null;
 
 document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
-  renderThemes();
-
   activeTab = await getActiveTab();
-  const stored = await chrome.storage.local.get({ [STORAGE_KEY]: null });
-  const record = stored[STORAGE_KEY];
-  activeId = record && typeof record === "object" ? record.id || null : null;
+  activeTabHost = activeTab?.url ? hostnameOf(activeTab.url) : "";
 
-  if (activeTab?.url) {
-    try {
-      const url = new URL(activeTab.url);
-      isXTab = isXHost(url.hostname);
-    } catch (_error) {
-      isXTab = false;
-    }
+  bindTabs();
+
+  await initX();
+  await initYouTube();
+
+  /* Restore the last-viewed app, defaulting to whichever host the
+     current tab is on so the popup is immediately useful. */
+  const stored = await chrome.storage.local.get({ [STORAGE_KEYS.lastApp]: null });
+  const fromHost = isXHost(activeTabHost) ? "x" : isYouTubeHost(activeTabHost) ? "youtube" : null;
+  switchApp(stored[STORAGE_KEYS.lastApp] || fromHost || "x", { persist: false });
+}
+
+/* ---- Tab switching ---- */
+
+function bindTabs() {
+  for (const tab of els.tabs) {
+    tab.addEventListener("click", () => switchApp(tab.dataset.app));
+  }
+}
+
+function switchApp(app, { persist = true } = {}) {
+  for (const tab of els.tabs) {
+    const active = tab.dataset.app === app;
+    tab.classList.toggle("is-active", active);
+    tab.setAttribute("aria-selected", String(active));
+  }
+  for (const pane of els.panes) {
+    const active = pane.dataset.app === app;
+    pane.classList.toggle("is-active", active);
+    pane.hidden = !active;
   }
 
-  refreshStatus();
-  highlightActive();
+  setMessage("");
 
-  els.themeList.addEventListener("click", onThemeClick);
-  els.clearBtn.addEventListener("click", onClearClick);
+  if (persist) {
+    chrome.storage.local.set({ [STORAGE_KEYS.lastApp]: app });
+  }
 }
 
-function renderThemes() {
-  els.themeList.replaceChildren(...PRESETS.map(createCard));
+/* ---- X Themes ---- */
+
+async function initX() {
+  renderXThemes();
+
+  const stored = await chrome.storage.local.get({ [STORAGE_KEYS.xActive]: null });
+  const record = stored[STORAGE_KEYS.xActive];
+  xActiveId = record && typeof record === "object" ? record.id || null : null;
+
+  refreshXStatus();
+  highlightActiveTheme();
+
+  els.xThemeList.addEventListener("click", onXThemeClick);
+  els.xClearBtn.addEventListener("click", onXClearClick);
 }
 
-function createCard(preset) {
+function renderXThemes() {
+  els.xThemeList.replaceChildren(...PRESETS.map(createThemeCard));
+}
+
+function createThemeCard(preset) {
   const card = document.createElement("button");
   card.type = "button";
   card.className = "theme-card";
@@ -269,29 +327,29 @@ function createCard(preset) {
   return card;
 }
 
-function highlightActive() {
-  for (const card of els.themeList.querySelectorAll(".theme-card")) {
-    card.classList.toggle("is-active", card.dataset.themeId === activeId);
+function highlightActiveTheme() {
+  for (const card of els.xThemeList.querySelectorAll(".theme-card")) {
+    card.classList.toggle("is-active", card.dataset.themeId === xActiveId);
   }
-  els.clearBtn.disabled = !activeId;
+  els.xClearBtn.disabled = !xActiveId;
 }
 
-function refreshStatus() {
-  if (!activeId) {
-    els.status.textContent = "Wähle ein Theme";
+function refreshXStatus() {
+  if (!xActiveId) {
+    els.xStatus.textContent = "Wähle ein Theme";
   } else {
-    const preset = PRESETS.find((p) => p.id === activeId);
-    els.status.textContent = preset ? `Aktiv: ${preset.name}` : "Aktiv: Custom";
+    const preset = PRESETS.find((p) => p.id === xActiveId);
+    els.xStatus.textContent = preset ? `Aktiv: ${preset.name}` : "Aktiv";
   }
 
-  if (isXTab) {
-    els.hint.textContent = "Klick auf eine Karte, um sie auf diesem Tab anzuwenden.";
+  if (isXHost(activeTabHost)) {
+    els.xHint.textContent = "Klick auf eine Karte, um sie auf diesem Tab anzuwenden.";
   } else {
-    els.hint.textContent = "Öffne x.com / twitter.com — Themes greifen dort automatisch.";
+    els.xHint.textContent = "Öffne x.com / twitter.com — Themes greifen dort automatisch.";
   }
 }
 
-async function onThemeClick(event) {
+async function onXThemeClick(event) {
   const card = event.target.closest(".theme-card");
   if (!card) {
     return;
@@ -302,75 +360,104 @@ async function onThemeClick(event) {
     return;
   }
 
-  activeId = preset.id;
-  await chrome.storage.local.set({ [STORAGE_KEY]: preset });
+  xActiveId = preset.id;
+  await chrome.storage.local.set({ [STORAGE_KEYS.xActive]: preset });
 
-  highlightActive();
-  refreshStatus();
+  highlightActiveTheme();
+  refreshXStatus();
 
   try {
-    await applyToActiveTab(preset);
-    if (isXTab) {
-      setMessage(`${preset.name} angewendet.`, "success");
+    if (isXHost(activeTabHost)) {
+      await sendToTab(activeTab.id, {
+        type: X_MESSAGES.applyTheme,
+        preset
+      }, ["content.js"]);
+      setMessage(`${preset.name} angewendet`, "success");
     } else {
-      setMessage(`${preset.name} gespeichert. Wird beim nächsten X-Tab automatisch geladen.`, "success");
+      setMessage(`${preset.name} gespeichert`, "success");
     }
   } catch (error) {
-    setMessage(error.message || "Konnte nicht angewendet werden.", "error");
+    setMessage(error.message || "Konnte nicht angewendet werden", "error");
   }
 }
 
-async function onClearClick() {
-  activeId = null;
-  await chrome.storage.local.remove(STORAGE_KEY);
-  highlightActive();
-  refreshStatus();
+async function onXClearClick() {
+  xActiveId = null;
+  await chrome.storage.local.remove(STORAGE_KEYS.xActive);
+
+  highlightActiveTheme();
+  refreshXStatus();
 
   try {
-    await clearActiveTab();
-    setMessage("Theme entfernt.", "success");
+    if (isXHost(activeTabHost)) {
+      await sendToTab(activeTab.id, { type: X_MESSAGES.clearTheme }, ["content.js"]);
+    }
+    setMessage("Theme entfernt", "success");
   } catch (error) {
-    setMessage(error.message || "Konnte nicht entfernt werden.", "error");
+    setMessage(error.message || "Konnte nicht entfernt werden", "error");
   }
 }
 
-async function applyToActiveTab(preset) {
-  if (!activeTab?.id || !isXTab) {
+/* ---- YouTube ---- */
+
+async function initYouTube() {
+  const stored = await chrome.storage.local.get({ [STORAGE_KEYS.ytHideShorts]: false });
+  els.ytHideShorts.checked = Boolean(stored[STORAGE_KEYS.ytHideShorts]);
+
+  els.ytHideShorts.addEventListener("change", onYtHideShortsChange);
+}
+
+async function onYtHideShortsChange() {
+  const enabled = els.ytHideShorts.checked;
+  await chrome.storage.local.set({ [STORAGE_KEYS.ytHideShorts]: enabled });
+
+  try {
+    if (isYouTubeHost(activeTabHost)) {
+      await sendToTab(activeTab.id, {
+        type: YT_MESSAGES.apply,
+        hideShorts: enabled
+      }, ["youtube.js"]);
+    }
+
+    /* Storage.onChanged listener in youtube.js will propagate to all other
+       open YouTube tabs without us needing to message each one. */
+    setMessage(enabled ? "Shorts ausgeblendet" : "Shorts wieder sichtbar", "success");
+  } catch (error) {
+    setMessage(error.message || "Konnte nicht angewendet werden", "error");
+  }
+}
+
+/* ---- Tab messaging ---- */
+
+async function sendToTab(tabId, message, contentScriptFiles) {
+  if (!tabId) {
     return;
   }
 
-  await sendToTab(activeTab.id, {
-    type: MESSAGE_TYPES.applyTheme,
-    preset
-  });
-}
-
-async function clearActiveTab() {
-  if (!activeTab?.id || !isXTab) {
-    return;
-  }
-
-  await sendToTab(activeTab.id, { type: MESSAGE_TYPES.clearTheme });
-}
-
-async function sendToTab(tabId, message) {
-  let response = await sendMessage(tabId, { type: MESSAGE_TYPES.ping });
+  let response = await sendMessage(tabId, { type: pingTypeFor(message.type) });
 
   if (!response?.ok) {
     try {
       await chrome.scripting.executeScript({
         target: { tabId },
-        files: ["content.js"]
+        files: contentScriptFiles
       });
     } catch (_error) {
-      throw new Error("Inhaltsskript konnte nicht geladen werden.");
+      throw new Error("Inhaltsskript konnte nicht geladen werden");
     }
   }
 
   response = await sendMessage(tabId, message);
   if (!response?.ok) {
-    throw new Error("Tab nahm das Theme nicht an.");
+    throw new Error("Tab nahm das Update nicht an");
   }
+}
+
+function pingTypeFor(messageType) {
+  if (messageType === X_MESSAGES.applyTheme || messageType === X_MESSAGES.clearTheme) {
+    return X_MESSAGES.ping;
+  }
+  return YT_MESSAGES.ping;
 }
 
 function sendMessage(tabId, message) {
@@ -385,9 +472,19 @@ function sendMessage(tabId, message) {
   });
 }
 
+/* ---- Helpers ---- */
+
 async function getActiveTab() {
   const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
   return tabs[0] || null;
+}
+
+function hostnameOf(url) {
+  try {
+    return new URL(url).hostname;
+  } catch (_error) {
+    return "";
+  }
 }
 
 function isXHost(hostname) {
@@ -398,8 +495,22 @@ function isXHost(hostname) {
     host.endsWith(".twitter.com");
 }
 
+function isYouTubeHost(hostname) {
+  const host = String(hostname || "").replace(/^www\./i, "").toLowerCase();
+  return host === "youtube.com" ||
+    host.endsWith(".youtube.com");
+}
+
 function setMessage(text, kind = "") {
+  window.clearTimeout(messageTimer);
   els.message.textContent = text;
   els.message.classList.toggle("is-error", kind === "error");
   els.message.classList.toggle("is-success", kind === "success");
+
+  if (text && kind === "success") {
+    messageTimer = window.setTimeout(() => {
+      els.message.textContent = "";
+      els.message.classList.remove("is-success");
+    }, 2400);
+  }
 }
