@@ -273,14 +273,30 @@ aside section,
 
 /* Composer / tweet textarea / toolbar => match the timeline bg, NOT surface.
    Default X.com keeps the composer flat with the timeline; surface here
-   makes it look like a misplaced light tile. */
+   makes it look like a misplaced light tile. Applies to BOTH the inline
+   home-page composer AND the standalone /compose/post modal. */
 [data-testid="primaryColumn"] form,
 [data-testid="primaryColumn"] form > div,
 [data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has(form),
 [data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has([data-testid="tweetTextarea_0"]),
-[data-testid="primaryColumn"] [data-testid="tweetTextarea_0"],
 [data-testid="primaryColumn"] [data-testid="toolBar"],
-[data-testid="primaryColumn"] [data-testid="toolBar"] > div {
+[data-testid="primaryColumn"] [data-testid="toolBar"] > div,
+/* Standalone compose dialog (x.com/compose/post or modal triggered from
+   the Post button) — :has() bumps specificity over the generic
+   [role="dialog"] => surface rule above. */
+[role="dialog"]:has([data-testid="tweetTextarea_0"]),
+[role="dialog"]:has([data-testid="tweetTextarea_0"]) > div,
+[role="dialog"]:has([data-testid="tweetTextarea_0"]) > div > div,
+[role="dialog"]:has([data-testid="tweetTextarea_0"]) [data-testid="toolBar"],
+/* The textarea container itself everywhere (data-testid wins over
+   [contenteditable] surface rule via higher specificity). */
+[data-testid="tweetTextarea_0"],
+[data-testid="tweetTextarea_0"] > div,
+[data-testid="tweetTextarea_0"] [contenteditable],
+[data-testid="tweetTextarea_0"] [contenteditable] > div,
+[data-testid="tweetTextarea_0"] div[data-contents],
+[data-testid="tweetTextareaRootContainer"],
+[data-testid="tweetTextareaRootContainer"] > div {
   background-color: var(--xt-bg) !important;
   border-color: var(--xt-border) !important;
   color: var(--xt-text) !important;
@@ -359,6 +375,17 @@ div[style*="background-color:rgba(0,0,0"],
 [style*="background-color:rgb(32,35,39)"],
 [style*="background-color: rgb(21, 32, 43)"],
 [style*="background-color:rgb(21,32,43)"] {
+  background-color: var(--xt-bg) !important;
+}
+
+/* Compose-area inner wrappers: when the textarea container has any inline
+   background, force it flat with the page. Beats the inline-style rule
+   above via :has() chain specificity. */
+[data-testid="tweetTextarea_0"] [style*="background-color"],
+[data-testid="tweetTextarea_0"] div,
+[data-testid="tweetTextareaRootContainer"] [style*="background-color"],
+[data-testid="tweetTextareaRootContainer"] div,
+[role="dialog"]:has([data-testid="tweetTextarea_0"]) [style*="background-color"]:not([data-testid*="button" i]):not([role="button"]) {
   background-color: var(--xt-bg) !important;
 }
 
