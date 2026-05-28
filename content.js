@@ -251,19 +251,13 @@ aside,
   color: var(--xt-text) !important;
 }
 
-/* Cards, dialogs, search, sidebar sections => surface */
+/* Right-rail cards, dialogs, search overlays => surface (visually distinct
+   from the page bg by design — they're "panels") */
 [data-testid="sidebarColumn"] section,
 [data-testid="sidebarColumn"] [aria-label],
 [data-testid="sidebarColumn"] [role="complementary"] section,
 [role="complementary"] section,
 aside section,
-[data-testid="primaryColumn"] form,
-[data-testid="primaryColumn"] form > div,
-[data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has(form),
-[data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has([data-testid="tweetTextarea_0"]),
-[data-testid="primaryColumn"] [data-testid="tweetTextarea_0"],
-[data-testid="primaryColumn"] [data-testid="toolBar"],
-[data-testid="primaryColumn"] [data-testid="toolBar"] > div,
 [role="search"],
 [role="search"] *,
 [role="dialog"],
@@ -275,6 +269,33 @@ aside section,
   background-color: var(--xt-surface) !important;
   border-color: var(--xt-border) !important;
   color: var(--xt-text) !important;
+}
+
+/* Composer / tweet textarea / toolbar => match the timeline bg, NOT surface.
+   Default X.com keeps the composer flat with the timeline; surface here
+   makes it look like a misplaced light tile. */
+[data-testid="primaryColumn"] form,
+[data-testid="primaryColumn"] form > div,
+[data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has(form),
+[data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has([data-testid="tweetTextarea_0"]),
+[data-testid="primaryColumn"] [data-testid="tweetTextarea_0"],
+[data-testid="primaryColumn"] [data-testid="toolBar"],
+[data-testid="primaryColumn"] [data-testid="toolBar"] > div {
+  background-color: var(--xt-bg) !important;
+  border-color: var(--xt-border) !important;
+  color: var(--xt-text) !important;
+}
+
+/* Embedded quote-tweet cards inside an article keep the page bg so they
+   read as nested but visually consistent — only the border distinguishes
+   them from the parent tweet. */
+[data-testid="primaryColumn"] article [role="link"][tabindex="0"]:has([data-testid="User-Name"]),
+[data-testid="primaryColumn"] article [data-testid="card.wrapper"],
+[data-testid="primaryColumn"] article [data-testid="card.layoutSmall.media"],
+[data-testid="primaryColumn"] article [data-testid="card.layoutLarge.media"],
+[data-testid="primaryColumn"] article div[role="link"]:has(time):has([data-testid="User-Name"]) {
+  background-color: var(--xt-bg) !important;
+  border-color: var(--xt-border) !important;
 }
 
 /* Typography */
@@ -571,10 +592,8 @@ svg {
   }
 
   function getSurfaceRoots() {
+    /* Only right-rail panels — composer is now bg-coloured via static CSS. */
     return document.querySelectorAll([
-      '[data-testid="primaryColumn"] form',
-      '[data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has(form)',
-      '[data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has([data-testid="tweetTextarea_0"])',
       '[data-testid="sidebarColumn"] section',
       '[data-testid="sidebarColumn"] [role="complementary"]',
       '[role="complementary"] section',
@@ -603,7 +622,9 @@ svg {
       }
 
       const box = element.getBoundingClientRect();
-      if (isRightRailSurface(box, primaryRect) || isComposerSurface(element, box, primaryRect)) {
+      /* Right-rail only — composer is now bg-coloured via static CSS so we
+         don't want the painter to flip it back to surface. */
+      if (isRightRailSurface(box, primaryRect)) {
         candidates.push(element);
       }
     }
