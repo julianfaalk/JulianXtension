@@ -1,19 +1,20 @@
 # Julians Tweaks
 
-A Manifest V3 Chrome extension that bundles **6 per-site tweaks** under one popup.
+A Manifest V3 Chrome extension that bundles **7 per-site annoyance-killers** under one popup with **17 togglable tweaks**.
 
 ## Apps
 
-| App | What it does |
+| App | Tweaks |
 |---|---|
-| **X Themes** | Apply one of 12 curated themes to x.com / twitter.com |
-| **YouTube** | Hide Shorts (sidebar, home, search, watch page, channel tabs) |
-| **Google** | Hide AI Overviews + Sponsored ads on Google Search |
-| **LinkedIn** | Hide Promoted posts + News rail on the right |
-| **Reddit** | Hide Promoted posts + Recommended subreddits |
-| **GitHub** | Hide Copilot CTAs + Sponsor buttons |
+| **X** | 12 theme presets · Hide Trends · Hide Who-to-Follow · Hide Grok |
+| **YouTube** | Hide Shorts · Hide Watch-Page Sidebar · Hide Comments |
+| **Google** | Hide AI-Overviews · Hide Sponsored · Hide People-Also-Ask · Hide Related Searches |
+| **LinkedIn** | Hide Promoted · Hide News-Rail · Hide People-You-May-Know |
+| **Reddit** | Hide Promoted · Hide Recommendations · Hide Right Sidebar |
+| **GitHub** | Hide Copilot CTAs · Hide Sponsor CTAs · Hide Home-Feed-Widgets |
+| **Instagram** | Hide Reels (nav, feed, profile tab) |
 
-Settings persist in `chrome.storage.local`. Each app's content script listens for storage changes — toggling propagates to all open matching tabs.
+All settings persist in `chrome.storage.local`. Toggling propagates to every open matching tab via storage change listeners — no per-tab messaging needed.
 
 ## Install locally
 
@@ -21,37 +22,40 @@ Settings persist in `chrome.storage.local`. Each app's content script listens fo
 2. Enable **Developer mode** (top right).
 3. Click **Load unpacked**.
 4. Select this folder.
-5. Open the popup, switch between app tabs, flip toggles.
+5. Open the popup, pick an app tab, flip toggles.
 
 ## Reload after changes
 
 1. `chrome://extensions`
 2. Reload icon on the **Julians Tweaks** card
-3. Refresh any open target tabs
+3. Refresh open target tabs
 
 ## Architecture
 
 ```
-manifest.json        — Lists hosts + content scripts per app
-popup.html / .css    — Tabbed popup UI (3×2 grid of apps)
-popup.js             — Tab routing + per-app init() + storage writes
-content.js           — X.com theme application
-youtube.js           — YouTube Shorts hiding
-google.js            — Google AI-Overview / Sponsored hiding
-linkedin.js          — LinkedIn promoted / news rail hiding
-reddit.js            — Reddit promoted / recommendations hiding
-github.js            — GitHub Copilot / Sponsors hiding
+manifest.json     — Hosts + content scripts per app
+popup.html / .css — Tabbed UI (4-col × 2-row grid of apps)
+popup.js          — Tab routing, per-app init(), wireToggleGroup() helper
+content.js        — X.com theme application + X hide-toggles
+youtube.js        — YouTube hide-toggles
+google.js         — Google hide-toggles
+linkedin.js       — LinkedIn hide-toggles (incl. MutationObserver for promoted detection)
+reddit.js         — Reddit hide-toggles
+github.js         — GitHub hide-toggles
+instagram.js      — Instagram hide-toggles
 ```
 
 Each app's content script follows the same shape:
-- Pre-injects a `<style>` with rules scoped to a root class on `<html>`
+- Pre-injects a `<style>` with rules scoped to a root class on `<html>` per setting
 - Toggles the root class to enable / disable a setting
-- Listens for `chrome.runtime.onMessage` (popup → tab) and `chrome.storage.onChanged` (cross-tab fanout)
+- Listens for `chrome.runtime.onMessage` (popup → tab, instant feedback) and `chrome.storage.onChanged` (cross-tab fanout)
+
+The popup uses `wireToggleGroup(app, applyMessageType, toggles)` to wire any number of toggles to their storage keys + active-tab broadcast in one call — see `initGoogle()` / `initReddit()` / etc.
 
 ## Adding more apps
 
-1. Add the host(s) to `manifest.json` (`host_permissions` + a new `content_scripts` entry)
-2. Create `<app>.js` content script with the same shape as `youtube.js`
-3. Add a `<section class="pane" data-app="...">` in `popup.html` and a tab button in `<nav class="tabs">`
-4. Add `init<App>()` in `popup.js` and call it from `init()`
-5. Add the app's metadata to the `APP_META` object in `popup.js`
+1. Add the host(s) to `manifest.json` (`host_permissions` + new `content_scripts` entry)
+2. Create `<app>.js` content script with the same shape as `youtube.js` or `instagram.js`
+3. Add a `<section class="pane" data-app="...">` in `popup.html` and a tab button
+4. Add `init<App>()` in `popup.js` using `wireToggleGroup` and call it from `init()`
+5. Add the app's entry to the `APP_META` map and storage keys to `STORAGE_KEYS`

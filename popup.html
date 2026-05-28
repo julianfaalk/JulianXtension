@@ -37,6 +37,10 @@
           <span class="tab-icon" aria-hidden="true">gh</span>
           <span class="tab-label">GitHub</span>
         </button>
+        <button type="button" class="tab" role="tab" aria-selected="false" data-app="instagram">
+          <span class="tab-icon" aria-hidden="true">IG</span>
+          <span class="tab-label">Instagram</span>
+        </button>
       </nav>
 
       <!-- X Themes pane -->
@@ -49,6 +53,41 @@
           <button type="button" id="xClearBtn" class="ghost-btn" title="Theme entfernen">Reset</button>
         </header>
         <div id="xThemeList" class="theme-grid" aria-label="Themes"></div>
+
+        <h2 class="section-heading">X.com Tweaks</h2>
+
+        <label class="setting-row">
+          <span class="setting-text">
+            <span class="setting-title">„What's happening" ausblenden</span>
+            <span class="setting-sub">Versteckt das Trends-Panel rechts.</span>
+          </span>
+          <span class="switch">
+            <input type="checkbox" id="xHideTrends">
+            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+          </span>
+        </label>
+
+        <label class="setting-row">
+          <span class="setting-text">
+            <span class="setting-title">„Who to follow" ausblenden</span>
+            <span class="setting-sub">Versteckt Vorschlags-Karten rechts (User-Empfehlungen).</span>
+          </span>
+          <span class="switch">
+            <input type="checkbox" id="xHideWhoToFollow">
+            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+          </span>
+        </label>
+
+        <label class="setting-row">
+          <span class="setting-text">
+            <span class="setting-title">Grok-Button ausblenden</span>
+            <span class="setting-sub">Versteckt den schwebenden Grok-Button und Navigation-Eintrag.</span>
+          </span>
+          <span class="switch">
+            <input type="checkbox" id="xHideGrok">
+            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+          </span>
+        </label>
       </section>
 
       <!-- YouTube pane -->
@@ -63,13 +102,33 @@
         <label class="setting-row">
           <span class="setting-text">
             <span class="setting-title">Shorts ausblenden</span>
-            <span class="setting-sub">Sidebar, Home-Shelf, Suche, Watch-Page-Empfehlungen, Channel-Tabs.</span>
+            <span class="setting-sub">Sidebar, Home-Shelf, Suche, Empfehlungen, Channel-Tabs.</span>
           </span>
           <span class="switch">
             <input type="checkbox" id="ytHideShorts">
-            <span class="switch-track" aria-hidden="true">
-              <span class="switch-thumb"></span>
-            </span>
+            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+          </span>
+        </label>
+
+        <label class="setting-row">
+          <span class="setting-text">
+            <span class="setting-title">Watch-Page Sidebar ausblenden</span>
+            <span class="setting-sub">Versteckt verwandte Videos rechts neben dem Player. Mehr Fokus auf das Video.</span>
+          </span>
+          <span class="switch">
+            <input type="checkbox" id="ytHideSidebar">
+            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+          </span>
+        </label>
+
+        <label class="setting-row">
+          <span class="setting-text">
+            <span class="setting-title">Kommentare ausblenden</span>
+            <span class="setting-sub">Versteckt den ganzen Kommentar-Bereich unter Videos.</span>
+          </span>
+          <span class="switch">
+            <input type="checkbox" id="ytHideComments">
+            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
           </span>
         </label>
       </section>
@@ -79,7 +138,7 @@
         <header class="pane-head">
           <div class="pane-title-block">
             <h1 class="pane-title">Google</h1>
-            <p class="pane-hint">Greift auf <code>google.com/search</code> & lokalen Varianten (.de, .at, .ch, .co.uk).</p>
+            <p class="pane-hint">Greift auf <code>google.com/search</code> & lokalen Varianten.</p>
           </div>
         </header>
 
@@ -90,22 +149,40 @@
           </span>
           <span class="switch">
             <input type="checkbox" id="googleHideAi">
-            <span class="switch-track" aria-hidden="true">
-              <span class="switch-thumb"></span>
-            </span>
+            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
           </span>
         </label>
 
         <label class="setting-row">
           <span class="setting-text">
             <span class="setting-title">Anzeigen ausblenden</span>
-            <span class="setting-sub">Versteckt „Gesponsert"-Treffer, Shopping-Karusselle und Werbe-Module.</span>
+            <span class="setting-sub">Versteckt „Gesponsert"-Treffer, Shopping-Karusselle, Werbung.</span>
           </span>
           <span class="switch">
             <input type="checkbox" id="googleHideSponsored">
-            <span class="switch-track" aria-hidden="true">
-              <span class="switch-thumb"></span>
-            </span>
+            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+          </span>
+        </label>
+
+        <label class="setting-row">
+          <span class="setting-text">
+            <span class="setting-title">„Ähnliche Fragen" ausblenden</span>
+            <span class="setting-sub">Versteckt das People-Also-Ask Akkordeon mitten in den Ergebnissen.</span>
+          </span>
+          <span class="switch">
+            <input type="checkbox" id="googleHidePeopleAsk">
+            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+          </span>
+        </label>
+
+        <label class="setting-row">
+          <span class="setting-text">
+            <span class="setting-title">„Ähnliche Suchanfragen" ausblenden</span>
+            <span class="setting-sub">Versteckt verwandte Suchen unten auf der Ergebnisseite.</span>
+          </span>
+          <span class="switch">
+            <input type="checkbox" id="googleHideRelated">
+            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
           </span>
         </label>
       </section>
@@ -122,13 +199,11 @@
         <label class="setting-row">
           <span class="setting-text">
             <span class="setting-title">Promoted Posts ausblenden</span>
-            <span class="setting-sub">Erkennt Posts mit Label „Promoted" / „Anzeige" und versteckt sie im Feed.</span>
+            <span class="setting-sub">Erkennt „Promoted" / „Anzeige" Posts und versteckt sie im Feed.</span>
           </span>
           <span class="switch">
             <input type="checkbox" id="linkedinHidePromoted">
-            <span class="switch-track" aria-hidden="true">
-              <span class="switch-thumb"></span>
-            </span>
+            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
           </span>
         </label>
 
@@ -139,9 +214,18 @@
           </span>
           <span class="switch">
             <input type="checkbox" id="linkedinHideNews">
-            <span class="switch-track" aria-hidden="true">
-              <span class="switch-thumb"></span>
-            </span>
+            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+          </span>
+        </label>
+
+        <label class="setting-row">
+          <span class="setting-text">
+            <span class="setting-title">„Personen, die du kennen könntest" ausblenden</span>
+            <span class="setting-sub">Versteckt die PYMK-Karten im Feed und im My-Network-Tab.</span>
+          </span>
+          <span class="switch">
+            <input type="checkbox" id="linkedinHidePymk">
+            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
           </span>
         </label>
       </section>
@@ -158,26 +242,33 @@
         <label class="setting-row">
           <span class="setting-text">
             <span class="setting-title">Promoted Posts ausblenden</span>
-            <span class="setting-sub">Versteckt <code>&lt;shreddit-ad-post&gt;</code> und gekennzeichnete Werbe-Posts.</span>
+            <span class="setting-sub">Versteckt <code>&lt;shreddit-ad-post&gt;</code> und Werbe-Posts im Feed.</span>
           </span>
           <span class="switch">
             <input type="checkbox" id="redditHidePromoted">
-            <span class="switch-track" aria-hidden="true">
-              <span class="switch-thumb"></span>
-            </span>
+            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
           </span>
         </label>
 
         <label class="setting-row">
           <span class="setting-text">
             <span class="setting-title">Empfehlungen ausblenden</span>
-            <span class="setting-sub">„Popular Communities", „Recommended", Subreddit-Karusselle im Feed.</span>
+            <span class="setting-sub">„Popular Communities", „Recommended", Subreddit-Karusselle.</span>
           </span>
           <span class="switch">
             <input type="checkbox" id="redditHideRecs">
-            <span class="switch-track" aria-hidden="true">
-              <span class="switch-thumb"></span>
-            </span>
+            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+          </span>
+        </label>
+
+        <label class="setting-row">
+          <span class="setting-text">
+            <span class="setting-title">Right Sidebar komplett ausblenden</span>
+            <span class="setting-sub">Versteckt Community-Info + Sidebar; Feed nutzt volle Breite.</span>
+          </span>
+          <span class="switch">
+            <input type="checkbox" id="redditHideSidebar">
+            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
           </span>
         </label>
       </section>
@@ -194,26 +285,54 @@
         <label class="setting-row">
           <span class="setting-text">
             <span class="setting-title">Copilot-CTAs ausblenden</span>
-            <span class="setting-sub">Versteckt Copilot-Chat-Button, Banner und Header-Links.</span>
+            <span class="setting-sub">Copilot-Chat-Button, Banner, Header-Links, Pulse-Indicators.</span>
           </span>
           <span class="switch">
             <input type="checkbox" id="githubHideCopilot">
-            <span class="switch-track" aria-hidden="true">
-              <span class="switch-thumb"></span>
-            </span>
+            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
           </span>
         </label>
 
         <label class="setting-row">
           <span class="setting-text">
             <span class="setting-title">Sponsor-CTAs ausblenden</span>
-            <span class="setting-sub">Versteckt „Sponsor"-Buttons und GitHub-Sponsors-Module.</span>
+            <span class="setting-sub">„Sponsor"-Buttons, Sponsor-Sektionen, Header-Sponsors-Link.</span>
           </span>
           <span class="switch">
             <input type="checkbox" id="githubHideSponsors">
-            <span class="switch-track" aria-hidden="true">
-              <span class="switch-thumb"></span>
-            </span>
+            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+          </span>
+        </label>
+
+        <label class="setting-row">
+          <span class="setting-text">
+            <span class="setting-title">Home-Feed-Widgets ausblenden</span>
+            <span class="setting-sub">„For you", „Your work", „Latest changes", trending Repositories.</span>
+          </span>
+          <span class="switch">
+            <input type="checkbox" id="githubHideFeedWidgets">
+            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+          </span>
+        </label>
+      </section>
+
+      <!-- Instagram pane -->
+      <section class="pane" data-app="instagram" role="tabpanel" hidden>
+        <header class="pane-head">
+          <div class="pane-title-block">
+            <h1 class="pane-title">Instagram</h1>
+            <p class="pane-hint">Greift auf <code>instagram.com</code>.</p>
+          </div>
+        </header>
+
+        <label class="setting-row">
+          <span class="setting-text">
+            <span class="setting-title">Reels ausblenden</span>
+            <span class="setting-sub">Versteckt Reels-Nav, Reels im Feed, Reels-Tab im Profil. Die /reels-Seite selbst bleibt erreichbar.</span>
+          </span>
+          <span class="switch">
+            <input type="checkbox" id="instagramHideReels">
+            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
           </span>
         </label>
       </section>

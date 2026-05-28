@@ -7,11 +7,13 @@
   const STYLE_ID = "julians-tweaks-github-style";
   const CLASS = {
     hideCopilot: "julians-tweaks-github-hide-copilot",
-    hideSponsors: "julians-tweaks-github-hide-sponsors"
+    hideSponsors: "julians-tweaks-github-hide-sponsors",
+    hideFeedWidgets: "julians-tweaks-github-hide-feed-widgets"
   };
   const STORAGE_KEYS = {
     hideCopilot: "github.hideCopilot",
-    hideSponsors: "github.hideSponsors"
+    hideSponsors: "github.hideSponsors",
+    hideFeedWidgets: "github.hideFeedWidgets"
   };
   const MESSAGE_TYPES = {
     ping: "JT_GITHUB_PING",
@@ -47,6 +49,9 @@
     if (changes[STORAGE_KEYS.hideSponsors]) {
       toggleRootClass(CLASS.hideSponsors, Boolean(changes[STORAGE_KEYS.hideSponsors].newValue));
     }
+    if (changes[STORAGE_KEYS.hideFeedWidgets]) {
+      toggleRootClass(CLASS.hideFeedWidgets, Boolean(changes[STORAGE_KEYS.hideFeedWidgets].newValue));
+    }
   });
 
   loadStored();
@@ -55,11 +60,13 @@
     try {
       const stored = await chrome.storage.local.get({
         [STORAGE_KEYS.hideCopilot]: false,
-        [STORAGE_KEYS.hideSponsors]: false
+        [STORAGE_KEYS.hideSponsors]: false,
+        [STORAGE_KEYS.hideFeedWidgets]: false
       });
       applyAll({
         hideCopilot: Boolean(stored[STORAGE_KEYS.hideCopilot]),
-        hideSponsors: Boolean(stored[STORAGE_KEYS.hideSponsors])
+        hideSponsors: Boolean(stored[STORAGE_KEYS.hideSponsors]),
+        hideFeedWidgets: Boolean(stored[STORAGE_KEYS.hideFeedWidgets])
       });
     } catch (_error) {
       /* no-op */
@@ -70,6 +77,7 @@
     ensureStyle();
     toggleRootClass(CLASS.hideCopilot, Boolean(settings.hideCopilot));
     toggleRootClass(CLASS.hideSponsors, Boolean(settings.hideSponsors));
+    toggleRootClass(CLASS.hideFeedWidgets, Boolean(settings.hideFeedWidgets));
   }
 
   function toggleRootClass(klass, on) {
@@ -128,6 +136,27 @@ html.${CLASS.hideSponsors} [aria-label*="Sponsor" i]:not([aria-label*="contribut
 html.${CLASS.hideSponsors} .Header-link[href*="sponsors" i],
 html.${CLASS.hideSponsors} .repository-content > div:has(a[href*="/sponsors/"]),
 html.${CLASS.hideSponsors} .BorderGrid-row:has(a[href*="/sponsors/"]) {
+  display: none !important;
+}
+
+/* ---- Home feed widgets ("Your work", "Latest from your network",
+        "Explore repositories", trending suggestions) ---- */
+html.${CLASS.hideFeedWidgets} feed-summary-item-card,
+html.${CLASS.hideFeedWidgets} home-feed-suggestions-grid,
+html.${CLASS.hideFeedWidgets} explore-feed,
+html.${CLASS.hideFeedWidgets} for-you-feed-empty-state,
+html.${CLASS.hideFeedWidgets} .news-feed-widget,
+html.${CLASS.hideFeedWidgets} dashboard-feed,
+html.${CLASS.hideFeedWidgets} [aria-label="Your work" i],
+html.${CLASS.hideFeedWidgets} [aria-label*="Latest changes" i],
+html.${CLASS.hideFeedWidgets} feed-trending-repositories,
+html.${CLASS.hideFeedWidgets} .dashboard-sidebar,
+html.${CLASS.hideFeedWidgets} #dashboard .feed-content-header,
+html.${CLASS.hideFeedWidgets} aside[aria-label*="Suggestions" i],
+html.${CLASS.hideFeedWidgets} aside[aria-label*="Latest changes" i],
+html.${CLASS.hideFeedWidgets} aside[aria-label*="Discussions" i],
+html.${CLASS.hideFeedWidgets} aside[aria-label*="Explore" i],
+html.${CLASS.hideFeedWidgets} aside.feed-right-sidebar {
   display: none !important;
 }
 `;

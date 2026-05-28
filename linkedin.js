@@ -7,11 +7,13 @@
   const STYLE_ID = "julians-tweaks-linkedin-style";
   const CLASS = {
     hidePromoted: "julians-tweaks-linkedin-hide-promoted",
-    hideNewsRail: "julians-tweaks-linkedin-hide-news"
+    hideNewsRail: "julians-tweaks-linkedin-hide-news",
+    hidePymk: "julians-tweaks-linkedin-hide-pymk"
   };
   const STORAGE_KEYS = {
     hidePromoted: "linkedin.hidePromoted",
-    hideNewsRail: "linkedin.hideNewsRail"
+    hideNewsRail: "linkedin.hideNewsRail",
+    hidePymk: "linkedin.hidePymk"
   };
   const MESSAGE_TYPES = {
     ping: "JT_LINKEDIN_PING",
@@ -53,6 +55,9 @@
     if (changes[STORAGE_KEYS.hideNewsRail]) {
       toggleRootClass(CLASS.hideNewsRail, Boolean(changes[STORAGE_KEYS.hideNewsRail].newValue));
     }
+    if (changes[STORAGE_KEYS.hidePymk]) {
+      toggleRootClass(CLASS.hidePymk, Boolean(changes[STORAGE_KEYS.hidePymk].newValue));
+    }
   });
 
   loadStored();
@@ -61,11 +66,13 @@
     try {
       const stored = await chrome.storage.local.get({
         [STORAGE_KEYS.hidePromoted]: false,
-        [STORAGE_KEYS.hideNewsRail]: false
+        [STORAGE_KEYS.hideNewsRail]: false,
+        [STORAGE_KEYS.hidePymk]: false
       });
       applyAll({
         hidePromoted: Boolean(stored[STORAGE_KEYS.hidePromoted]),
-        hideNewsRail: Boolean(stored[STORAGE_KEYS.hideNewsRail])
+        hideNewsRail: Boolean(stored[STORAGE_KEYS.hideNewsRail]),
+        hidePymk: Boolean(stored[STORAGE_KEYS.hidePymk])
       });
     } catch (_error) {
       /* no-op */
@@ -76,6 +83,7 @@
     ensureStyle();
     toggleRootClass(CLASS.hidePromoted, Boolean(settings.hidePromoted));
     toggleRootClass(CLASS.hideNewsRail, Boolean(settings.hideNewsRail));
+    toggleRootClass(CLASS.hidePymk, Boolean(settings.hidePymk));
     if (settings.hidePromoted) {
       ensureObserver();
       markPromotedPosts();
@@ -172,6 +180,20 @@ html.${CLASS.hideNewsRail} .ad-banner-container {
 html.${CLASS.hideNewsRail} .scaffold-layout__main {
   margin-right: auto !important;
   max-width: 760px !important;
+}
+
+/* ---- People you may know widgets ---- */
+html.${CLASS.hidePymk} [data-id^="pymk"],
+html.${CLASS.hidePymk} [aria-label*="People you may know" i],
+html.${CLASS.hidePymk} [aria-label*="Personen, die Sie kennen" i],
+html.${CLASS.hidePymk} [aria-label*="Personen, die du kennen" i],
+html.${CLASS.hidePymk} .pymk-list,
+html.${CLASS.hidePymk} .discovery-people-card,
+html.${CLASS.hidePymk} section:has(> header > h2):has(.discover-entity-type-card),
+html.${CLASS.hidePymk} .feed-shared-update-v2:has([data-id^="urn:li:fsd_pymk"]),
+html.${CLASS.hidePymk} li.artdeco-list__item:has(button[aria-label*="Connect with" i]),
+html.${CLASS.hidePymk} .scaffold-finite-scroll__content section:has(.discover-entity-type-card) {
+  display: none !important;
 }
 `;
 })();

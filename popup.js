@@ -10,31 +10,44 @@
 const STORAGE_KEYS = {
   /* X */
   xActive: "xthemes.active",
+  xHideTrends: "x.hideTrends",
+  xHideWhoToFollow: "x.hideWhoToFollow",
+  xHideGrok: "x.hideGrok",
   /* YouTube */
   ytHideShorts: "youtube.hideShorts",
+  ytHideSidebar: "youtube.hideSidebar",
+  ytHideComments: "youtube.hideComments",
   /* Google */
   googleHideAi: "google.hideAiOverview",
   googleHideSponsored: "google.hideSponsored",
+  googleHidePeopleAsk: "google.hidePeopleAsk",
+  googleHideRelated: "google.hideRelated",
   /* LinkedIn */
   linkedinHidePromoted: "linkedin.hidePromoted",
   linkedinHideNews: "linkedin.hideNewsRail",
+  linkedinHidePymk: "linkedin.hidePymk",
   /* Reddit */
   redditHidePromoted: "reddit.hidePromoted",
   redditHideRecs: "reddit.hideRecommendations",
+  redditHideSidebar: "reddit.hideSidebar",
   /* GitHub */
   githubHideCopilot: "github.hideCopilot",
   githubHideSponsors: "github.hideSponsors",
+  githubHideFeedWidgets: "github.hideFeedWidgets",
+  /* Instagram */
+  instagramHideReels: "instagram.hideReels",
   /* UI */
   lastApp: "ui.lastApp"
 };
 
 const APP_META = {
-  x:        { hosts: ["x.com", "twitter.com"], script: "content.js",  ping: "XTHEMES_PING" },
-  youtube:  { hosts: ["youtube.com"],          script: "youtube.js",  ping: "JT_YT_PING" },
-  google:   { hosts: ["google.com", "google.de", "google.co.uk", "google.at", "google.ch"], script: "google.js", ping: "JT_GOOGLE_PING" },
-  linkedin: { hosts: ["linkedin.com"],         script: "linkedin.js", ping: "JT_LINKEDIN_PING" },
-  reddit:   { hosts: ["reddit.com"],           script: "reddit.js",   ping: "JT_REDDIT_PING" },
-  github:   { hosts: ["github.com"],           script: "github.js",   ping: "JT_GITHUB_PING" }
+  x:         { hosts: ["x.com", "twitter.com"], script: "content.js",   ping: "XTHEMES_PING" },
+  youtube:   { hosts: ["youtube.com"],          script: "youtube.js",   ping: "JT_YT_PING" },
+  google:    { hosts: ["google.com", "google.de", "google.co.uk", "google.at", "google.ch"], script: "google.js", ping: "JT_GOOGLE_PING" },
+  linkedin:  { hosts: ["linkedin.com"],         script: "linkedin.js",  ping: "JT_LINKEDIN_PING" },
+  reddit:    { hosts: ["reddit.com"],           script: "reddit.js",    ping: "JT_REDDIT_PING" },
+  github:    { hosts: ["github.com"],           script: "github.js",    ping: "JT_GITHUB_PING" },
+  instagram: { hosts: ["instagram.com"],        script: "instagram.js", ping: "JT_INSTAGRAM_PING" }
 };
 
 const X_MESSAGES = {
@@ -78,20 +91,32 @@ const els = {
   xHint: document.querySelector("#xHint"),
   xThemeList: document.querySelector("#xThemeList"),
   xClearBtn: document.querySelector("#xClearBtn"),
+  xHideTrends: document.querySelector("#xHideTrends"),
+  xHideWhoToFollow: document.querySelector("#xHideWhoToFollow"),
+  xHideGrok: document.querySelector("#xHideGrok"),
   /* YouTube */
   ytHideShorts: document.querySelector("#ytHideShorts"),
+  ytHideSidebar: document.querySelector("#ytHideSidebar"),
+  ytHideComments: document.querySelector("#ytHideComments"),
   /* Google */
   googleHideAi: document.querySelector("#googleHideAi"),
   googleHideSponsored: document.querySelector("#googleHideSponsored"),
+  googleHidePeopleAsk: document.querySelector("#googleHidePeopleAsk"),
+  googleHideRelated: document.querySelector("#googleHideRelated"),
   /* LinkedIn */
   linkedinHidePromoted: document.querySelector("#linkedinHidePromoted"),
   linkedinHideNews: document.querySelector("#linkedinHideNews"),
+  linkedinHidePymk: document.querySelector("#linkedinHidePymk"),
   /* Reddit */
   redditHidePromoted: document.querySelector("#redditHidePromoted"),
   redditHideRecs: document.querySelector("#redditHideRecs"),
+  redditHideSidebar: document.querySelector("#redditHideSidebar"),
   /* GitHub */
   githubHideCopilot: document.querySelector("#githubHideCopilot"),
-  githubHideSponsors: document.querySelector("#githubHideSponsors")
+  githubHideSponsors: document.querySelector("#githubHideSponsors"),
+  githubHideFeedWidgets: document.querySelector("#githubHideFeedWidgets"),
+  /* Instagram */
+  instagramHideReels: document.querySelector("#instagramHideReels")
 };
 
 let activeTab = null;
@@ -113,6 +138,7 @@ async function init() {
   await initLinkedIn();
   await initReddit();
   await initGithub();
+  await initInstagram();
 
   /* Restore last viewed app, but default to whichever the current tab is. */
   const stored = await chrome.storage.local.get({ [STORAGE_KEYS.lastApp]: null });
@@ -157,6 +183,41 @@ function appForHost(hostname) {
   return null;
 }
 
+/* ---- Generic toggle wiring ----
+   Given a list of { input, storageKey, app, settingsKey, label }, this
+   helper does the boring boilerplate: load initial state, write to
+   storage on change, broadcast a settings object to the active tab if
+   it matches the app, and show a status message. The settings object
+   is rebuilt from ALL toggles in the group so the content script
+   always gets a complete picture. */
+function wireToggleGroup(app, applyMessageType, toggles) {
+  const broadcast = async () => {
+    const settings = Object.fromEntries(
+      toggles.map((t) => [t.settingsKey, t.input.checked])
+    );
+    await maybeApplyToActiveTab(app, {
+      type: applyMessageType,
+      settings
+    });
+  };
+
+  for (const t of toggles) {
+    t.input.addEventListener("change", async () => {
+      await chrome.storage.local.set({ [t.storageKey]: t.input.checked });
+      await broadcast();
+      setMessage(t.input.checked ? `${t.label} aus` : `${t.label} sichtbar`, "success");
+    });
+  }
+}
+
+async function loadToggleStates(toggles) {
+  const defaults = Object.fromEntries(toggles.map((t) => [t.storageKey, false]));
+  const stored = await chrome.storage.local.get(defaults);
+  for (const t of toggles) {
+    t.input.checked = Boolean(stored[t.storageKey]);
+  }
+}
+
 /* ---- X Themes ---- */
 
 async function initX() {
@@ -171,6 +232,23 @@ async function initX() {
 
   els.xThemeList.addEventListener("click", onXThemeClick);
   els.xClearBtn.addEventListener("click", onXClearClick);
+
+  /* X.com hide-toggles (theme is handled separately through preset selection) */
+  const xToggles = [
+    { input: els.xHideTrends,      storageKey: STORAGE_KEYS.xHideTrends,      settingsKey: "hideTrends",      label: "Trends" },
+    { input: els.xHideWhoToFollow, storageKey: STORAGE_KEYS.xHideWhoToFollow, settingsKey: "hideWhoToFollow", label: "Who to follow" },
+    { input: els.xHideGrok,        storageKey: STORAGE_KEYS.xHideGrok,        settingsKey: "hideGrok",        label: "Grok" }
+  ];
+  await loadToggleStates(xToggles);
+
+  /* For X we don't send applyAll messages — content.js listens to
+     chrome.storage.onChanged directly for these keys. */
+  for (const t of xToggles) {
+    t.input.addEventListener("change", async () => {
+      await chrome.storage.local.set({ [t.storageKey]: t.input.checked });
+      setMessage(t.input.checked ? `${t.label} aus` : `${t.label} sichtbar`, "success");
+    });
+  }
 }
 
 function renderXThemes() {
@@ -287,150 +365,72 @@ async function onXClearClick() {
 /* ---- YouTube ---- */
 
 async function initYouTube() {
-  const stored = await chrome.storage.local.get({ [STORAGE_KEYS.ytHideShorts]: false });
-  els.ytHideShorts.checked = Boolean(stored[STORAGE_KEYS.ytHideShorts]);
-
-  els.ytHideShorts.addEventListener("change", async () => {
-    const enabled = els.ytHideShorts.checked;
-    await chrome.storage.local.set({ [STORAGE_KEYS.ytHideShorts]: enabled });
-    await maybeApplyToActiveTab("youtube", {
-      type: "JT_YT_APPLY",
-      hideShorts: enabled
-    });
-    setMessage(enabled ? "Shorts ausgeblendet" : "Shorts wieder sichtbar", "success");
-  });
+  const toggles = [
+    { input: els.ytHideShorts,   storageKey: STORAGE_KEYS.ytHideShorts,   settingsKey: "hideShorts",   label: "Shorts" },
+    { input: els.ytHideSidebar,  storageKey: STORAGE_KEYS.ytHideSidebar,  settingsKey: "hideSidebar",  label: "Sidebar" },
+    { input: els.ytHideComments, storageKey: STORAGE_KEYS.ytHideComments, settingsKey: "hideComments", label: "Kommentare" }
+  ];
+  await loadToggleStates(toggles);
+  wireToggleGroup("youtube", "JT_YT_APPLY", toggles);
 }
 
 /* ---- Google ---- */
 
 async function initGoogle() {
-  const stored = await chrome.storage.local.get({
-    [STORAGE_KEYS.googleHideAi]: false,
-    [STORAGE_KEYS.googleHideSponsored]: false
-  });
-  els.googleHideAi.checked = Boolean(stored[STORAGE_KEYS.googleHideAi]);
-  els.googleHideSponsored.checked = Boolean(stored[STORAGE_KEYS.googleHideSponsored]);
-
-  const broadcast = async () => {
-    await maybeApplyToActiveTab("google", {
-      type: "JT_GOOGLE_APPLY",
-      settings: {
-        hideAiOverview: els.googleHideAi.checked,
-        hideSponsored: els.googleHideSponsored.checked
-      }
-    });
-  };
-
-  els.googleHideAi.addEventListener("change", async () => {
-    await chrome.storage.local.set({ [STORAGE_KEYS.googleHideAi]: els.googleHideAi.checked });
-    await broadcast();
-    setMessage(els.googleHideAi.checked ? "AI-Overviews aus" : "AI-Overviews sichtbar", "success");
-  });
-
-  els.googleHideSponsored.addEventListener("change", async () => {
-    await chrome.storage.local.set({ [STORAGE_KEYS.googleHideSponsored]: els.googleHideSponsored.checked });
-    await broadcast();
-    setMessage(els.googleHideSponsored.checked ? "Anzeigen aus" : "Anzeigen sichtbar", "success");
-  });
+  const toggles = [
+    { input: els.googleHideAi,         storageKey: STORAGE_KEYS.googleHideAi,         settingsKey: "hideAiOverview", label: "AI-Overviews" },
+    { input: els.googleHideSponsored,  storageKey: STORAGE_KEYS.googleHideSponsored,  settingsKey: "hideSponsored",  label: "Anzeigen" },
+    { input: els.googleHidePeopleAsk,  storageKey: STORAGE_KEYS.googleHidePeopleAsk,  settingsKey: "hidePeopleAsk",  label: "Ähnliche Fragen" },
+    { input: els.googleHideRelated,    storageKey: STORAGE_KEYS.googleHideRelated,    settingsKey: "hideRelated",    label: "Verwandte Suchen" }
+  ];
+  await loadToggleStates(toggles);
+  wireToggleGroup("google", "JT_GOOGLE_APPLY", toggles);
 }
 
 /* ---- LinkedIn ---- */
 
 async function initLinkedIn() {
-  const stored = await chrome.storage.local.get({
-    [STORAGE_KEYS.linkedinHidePromoted]: false,
-    [STORAGE_KEYS.linkedinHideNews]: false
-  });
-  els.linkedinHidePromoted.checked = Boolean(stored[STORAGE_KEYS.linkedinHidePromoted]);
-  els.linkedinHideNews.checked = Boolean(stored[STORAGE_KEYS.linkedinHideNews]);
-
-  const broadcast = async () => {
-    await maybeApplyToActiveTab("linkedin", {
-      type: "JT_LINKEDIN_APPLY",
-      settings: {
-        hidePromoted: els.linkedinHidePromoted.checked,
-        hideNewsRail: els.linkedinHideNews.checked
-      }
-    });
-  };
-
-  els.linkedinHidePromoted.addEventListener("change", async () => {
-    await chrome.storage.local.set({ [STORAGE_KEYS.linkedinHidePromoted]: els.linkedinHidePromoted.checked });
-    await broadcast();
-    setMessage(els.linkedinHidePromoted.checked ? "Promoted aus" : "Promoted sichtbar", "success");
-  });
-
-  els.linkedinHideNews.addEventListener("change", async () => {
-    await chrome.storage.local.set({ [STORAGE_KEYS.linkedinHideNews]: els.linkedinHideNews.checked });
-    await broadcast();
-    setMessage(els.linkedinHideNews.checked ? "News-Rail aus" : "News-Rail sichtbar", "success");
-  });
+  const toggles = [
+    { input: els.linkedinHidePromoted, storageKey: STORAGE_KEYS.linkedinHidePromoted, settingsKey: "hidePromoted",  label: "Promoted" },
+    { input: els.linkedinHideNews,     storageKey: STORAGE_KEYS.linkedinHideNews,     settingsKey: "hideNewsRail",  label: "News-Rail" },
+    { input: els.linkedinHidePymk,     storageKey: STORAGE_KEYS.linkedinHidePymk,     settingsKey: "hidePymk",      label: "PYMK" }
+  ];
+  await loadToggleStates(toggles);
+  wireToggleGroup("linkedin", "JT_LINKEDIN_APPLY", toggles);
 }
 
 /* ---- Reddit ---- */
 
 async function initReddit() {
-  const stored = await chrome.storage.local.get({
-    [STORAGE_KEYS.redditHidePromoted]: false,
-    [STORAGE_KEYS.redditHideRecs]: false
-  });
-  els.redditHidePromoted.checked = Boolean(stored[STORAGE_KEYS.redditHidePromoted]);
-  els.redditHideRecs.checked = Boolean(stored[STORAGE_KEYS.redditHideRecs]);
-
-  const broadcast = async () => {
-    await maybeApplyToActiveTab("reddit", {
-      type: "JT_REDDIT_APPLY",
-      settings: {
-        hidePromoted: els.redditHidePromoted.checked,
-        hideRecommendations: els.redditHideRecs.checked
-      }
-    });
-  };
-
-  els.redditHidePromoted.addEventListener("change", async () => {
-    await chrome.storage.local.set({ [STORAGE_KEYS.redditHidePromoted]: els.redditHidePromoted.checked });
-    await broadcast();
-    setMessage(els.redditHidePromoted.checked ? "Promoted aus" : "Promoted sichtbar", "success");
-  });
-
-  els.redditHideRecs.addEventListener("change", async () => {
-    await chrome.storage.local.set({ [STORAGE_KEYS.redditHideRecs]: els.redditHideRecs.checked });
-    await broadcast();
-    setMessage(els.redditHideRecs.checked ? "Empfehlungen aus" : "Empfehlungen sichtbar", "success");
-  });
+  const toggles = [
+    { input: els.redditHidePromoted,  storageKey: STORAGE_KEYS.redditHidePromoted, settingsKey: "hidePromoted",        label: "Promoted" },
+    { input: els.redditHideRecs,      storageKey: STORAGE_KEYS.redditHideRecs,     settingsKey: "hideRecommendations", label: "Empfehlungen" },
+    { input: els.redditHideSidebar,   storageKey: STORAGE_KEYS.redditHideSidebar,  settingsKey: "hideSidebar",         label: "Sidebar" }
+  ];
+  await loadToggleStates(toggles);
+  wireToggleGroup("reddit", "JT_REDDIT_APPLY", toggles);
 }
 
 /* ---- GitHub ---- */
 
 async function initGithub() {
-  const stored = await chrome.storage.local.get({
-    [STORAGE_KEYS.githubHideCopilot]: false,
-    [STORAGE_KEYS.githubHideSponsors]: false
-  });
-  els.githubHideCopilot.checked = Boolean(stored[STORAGE_KEYS.githubHideCopilot]);
-  els.githubHideSponsors.checked = Boolean(stored[STORAGE_KEYS.githubHideSponsors]);
+  const toggles = [
+    { input: els.githubHideCopilot,      storageKey: STORAGE_KEYS.githubHideCopilot,      settingsKey: "hideCopilot",     label: "Copilot" },
+    { input: els.githubHideSponsors,     storageKey: STORAGE_KEYS.githubHideSponsors,     settingsKey: "hideSponsors",    label: "Sponsors" },
+    { input: els.githubHideFeedWidgets,  storageKey: STORAGE_KEYS.githubHideFeedWidgets,  settingsKey: "hideFeedWidgets", label: "Feed-Widgets" }
+  ];
+  await loadToggleStates(toggles);
+  wireToggleGroup("github", "JT_GITHUB_APPLY", toggles);
+}
 
-  const broadcast = async () => {
-    await maybeApplyToActiveTab("github", {
-      type: "JT_GITHUB_APPLY",
-      settings: {
-        hideCopilot: els.githubHideCopilot.checked,
-        hideSponsors: els.githubHideSponsors.checked
-      }
-    });
-  };
+/* ---- Instagram ---- */
 
-  els.githubHideCopilot.addEventListener("change", async () => {
-    await chrome.storage.local.set({ [STORAGE_KEYS.githubHideCopilot]: els.githubHideCopilot.checked });
-    await broadcast();
-    setMessage(els.githubHideCopilot.checked ? "Copilot aus" : "Copilot sichtbar", "success");
-  });
-
-  els.githubHideSponsors.addEventListener("change", async () => {
-    await chrome.storage.local.set({ [STORAGE_KEYS.githubHideSponsors]: els.githubHideSponsors.checked });
-    await broadcast();
-    setMessage(els.githubHideSponsors.checked ? "Sponsors aus" : "Sponsors sichtbar", "success");
-  });
+async function initInstagram() {
+  const toggles = [
+    { input: els.instagramHideReels, storageKey: STORAGE_KEYS.instagramHideReels, settingsKey: "hideReels", label: "Reels" }
+  ];
+  await loadToggleStates(toggles);
+  wireToggleGroup("instagram", "JT_INSTAGRAM_APPLY", toggles);
 }
 
 /* ---- Tab messaging helpers ---- */

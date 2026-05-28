@@ -7,11 +7,13 @@
   const STYLE_ID = "julians-tweaks-reddit-style";
   const CLASS = {
     hidePromoted: "julians-tweaks-reddit-hide-promoted",
-    hideRecommendations: "julians-tweaks-reddit-hide-recs"
+    hideRecommendations: "julians-tweaks-reddit-hide-recs",
+    hideSidebar: "julians-tweaks-reddit-hide-sidebar"
   };
   const STORAGE_KEYS = {
     hidePromoted: "reddit.hidePromoted",
-    hideRecommendations: "reddit.hideRecommendations"
+    hideRecommendations: "reddit.hideRecommendations",
+    hideSidebar: "reddit.hideSidebar"
   };
   const MESSAGE_TYPES = {
     ping: "JT_REDDIT_PING",
@@ -47,6 +49,9 @@
     if (changes[STORAGE_KEYS.hideRecommendations]) {
       toggleRootClass(CLASS.hideRecommendations, Boolean(changes[STORAGE_KEYS.hideRecommendations].newValue));
     }
+    if (changes[STORAGE_KEYS.hideSidebar]) {
+      toggleRootClass(CLASS.hideSidebar, Boolean(changes[STORAGE_KEYS.hideSidebar].newValue));
+    }
   });
 
   loadStored();
@@ -55,11 +60,13 @@
     try {
       const stored = await chrome.storage.local.get({
         [STORAGE_KEYS.hidePromoted]: false,
-        [STORAGE_KEYS.hideRecommendations]: false
+        [STORAGE_KEYS.hideRecommendations]: false,
+        [STORAGE_KEYS.hideSidebar]: false
       });
       applyAll({
         hidePromoted: Boolean(stored[STORAGE_KEYS.hidePromoted]),
-        hideRecommendations: Boolean(stored[STORAGE_KEYS.hideRecommendations])
+        hideRecommendations: Boolean(stored[STORAGE_KEYS.hideRecommendations]),
+        hideSidebar: Boolean(stored[STORAGE_KEYS.hideSidebar])
       });
     } catch (_error) {
       /* no-op */
@@ -70,6 +77,7 @@
     ensureStyle();
     toggleRootClass(CLASS.hidePromoted, Boolean(settings.hidePromoted));
     toggleRootClass(CLASS.hideRecommendations, Boolean(settings.hideRecommendations));
+    toggleRootClass(CLASS.hideSidebar, Boolean(settings.hideSidebar));
   }
 
   function toggleRootClass(klass, on) {
@@ -126,6 +134,21 @@ html.${CLASS.hideRecommendations} shreddit-gallery-carousel:has([href*="/r/"]) {
 html.${CLASS.hideRecommendations} shreddit-feed shreddit-gallery-carousel,
 html.${CLASS.hideRecommendations} shreddit-feed [feed-position]:has(shreddit-gallery-carousel) {
   display: none !important;
+}
+
+/* ---- Right sidebar (community info, related) ---- */
+html.${CLASS.hideSidebar} reddit-sidebar-nav,
+html.${CLASS.hideSidebar} .subgrid-container > aside,
+html.${CLASS.hideSidebar} aside[role="complementary"],
+html.${CLASS.hideSidebar} [data-testid="frontpage-sidebar"],
+html.${CLASS.hideSidebar} #right-sidebar-container,
+html.${CLASS.hideSidebar} .side {
+  display: none !important;
+}
+
+/* Expand the main column when the sidebar is hidden */
+html.${CLASS.hideSidebar} .subgrid-container {
+  grid-template-columns: 1fr !important;
 }
 `;
 })();

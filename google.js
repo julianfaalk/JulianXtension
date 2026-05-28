@@ -7,11 +7,15 @@
   const STYLE_ID = "julians-tweaks-google-style";
   const CLASS = {
     hideAiOverview: "julians-tweaks-google-hide-ai",
-    hideSponsored: "julians-tweaks-google-hide-sponsored"
+    hideSponsored: "julians-tweaks-google-hide-sponsored",
+    hidePeopleAsk: "julians-tweaks-google-hide-paa",
+    hideRelated: "julians-tweaks-google-hide-related"
   };
   const STORAGE_KEYS = {
     hideAiOverview: "google.hideAiOverview",
-    hideSponsored: "google.hideSponsored"
+    hideSponsored: "google.hideSponsored",
+    hidePeopleAsk: "google.hidePeopleAsk",
+    hideRelated: "google.hideRelated"
   };
   const MESSAGE_TYPES = {
     ping: "JT_GOOGLE_PING",
@@ -47,6 +51,12 @@
     if (changes[STORAGE_KEYS.hideSponsored]) {
       toggleRootClass(CLASS.hideSponsored, Boolean(changes[STORAGE_KEYS.hideSponsored].newValue));
     }
+    if (changes[STORAGE_KEYS.hidePeopleAsk]) {
+      toggleRootClass(CLASS.hidePeopleAsk, Boolean(changes[STORAGE_KEYS.hidePeopleAsk].newValue));
+    }
+    if (changes[STORAGE_KEYS.hideRelated]) {
+      toggleRootClass(CLASS.hideRelated, Boolean(changes[STORAGE_KEYS.hideRelated].newValue));
+    }
   });
 
   loadStored();
@@ -55,11 +65,15 @@
     try {
       const stored = await chrome.storage.local.get({
         [STORAGE_KEYS.hideAiOverview]: false,
-        [STORAGE_KEYS.hideSponsored]: false
+        [STORAGE_KEYS.hideSponsored]: false,
+        [STORAGE_KEYS.hidePeopleAsk]: false,
+        [STORAGE_KEYS.hideRelated]: false
       });
       applyAll({
         hideAiOverview: Boolean(stored[STORAGE_KEYS.hideAiOverview]),
-        hideSponsored: Boolean(stored[STORAGE_KEYS.hideSponsored])
+        hideSponsored: Boolean(stored[STORAGE_KEYS.hideSponsored]),
+        hidePeopleAsk: Boolean(stored[STORAGE_KEYS.hidePeopleAsk]),
+        hideRelated: Boolean(stored[STORAGE_KEYS.hideRelated])
       });
     } catch (_error) {
       /* no-op */
@@ -70,6 +84,8 @@
     ensureStyle();
     toggleRootClass(CLASS.hideAiOverview, Boolean(settings.hideAiOverview));
     toggleRootClass(CLASS.hideSponsored, Boolean(settings.hideSponsored));
+    toggleRootClass(CLASS.hidePeopleAsk, Boolean(settings.hidePeopleAsk));
+    toggleRootClass(CLASS.hideRelated, Boolean(settings.hideRelated));
   }
 
   function toggleRootClass(klass, on) {
@@ -144,6 +160,29 @@ html.${CLASS.hideSponsored} [data-pla] {
 html.${CLASS.hideSponsored} [data-async-context*="shopping" i],
 html.${CLASS.hideSponsored} .pla-unit-container,
 html.${CLASS.hideSponsored} .commercial-unit-desktop-rhs {
+  display: none !important;
+}
+
+/* ---- People Also Ask / Ähnliche Fragen ---- */
+html.${CLASS.hidePeopleAsk} .related-question-pair,
+html.${CLASS.hidePeopleAsk} [jsname="N760b"],
+html.${CLASS.hidePeopleAsk} div[data-initq],
+html.${CLASS.hidePeopleAsk} [aria-label*="People also ask" i],
+html.${CLASS.hidePeopleAsk} [aria-label*="Ähnliche Fragen" i],
+html.${CLASS.hidePeopleAsk} [aria-label*="Diese Fragen" i],
+html.${CLASS.hidePeopleAsk} #search div[data-rk]:has([role="heading"]),
+html.${CLASS.hidePeopleAsk} #search > div > div > div:has(.related-question-pair) {
+  display: none !important;
+}
+
+/* ---- Related searches at bottom of results ---- */
+html.${CLASS.hideRelated} #botstuff #brs,
+html.${CLASS.hideRelated} #botstuff .brs_col,
+html.${CLASS.hideRelated} [data-async-type="rrelatedsearches"],
+html.${CLASS.hideRelated} [aria-label*="Ähnliche Suchanfragen" i],
+html.${CLASS.hideRelated} [aria-label*="Related searches" i],
+html.${CLASS.hideRelated} div[jscontroller="lpYTOe"],
+html.${CLASS.hideRelated} #botstuff > div > div:has(h3) {
   display: none !important;
 }
 `;
