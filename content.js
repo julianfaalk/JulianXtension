@@ -134,7 +134,11 @@
   caret-color: var(--xt-accent) !important;
 }
 
-html, body {
+html,
+body,
+html body,
+#react-root,
+#react-root > div {
   background-color: var(--xt-bg) !important;
   color: var(--xt-text) !important;
 }
