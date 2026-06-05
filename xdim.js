@@ -209,6 +209,7 @@ html.${DIM_CLASS} [data-theme="dark"] {
     return `
 html.${DIM_CLASS},
 html.${DIM_CLASS} body {
+  background: var(--xdm-bg) !important;
   background-color: var(--xdm-bg) !important;
   color: #e7e9ea !important;
   color-scheme: dark !important;
@@ -235,6 +236,7 @@ html.${DIM_CLASS} body:not(.LightsOut) :where(
   #react-root,
   #react-root > div
 ) {
+  background: var(--xdm-bg) !important;
   background-color: var(--xdm-bg) !important;
   color: #e7e9ea !important;
 }
@@ -249,8 +251,24 @@ html.${DIM_CLASS} body:not(.LightsOut) :where(
   [role="listbox"],
   [data-testid="HoverCard"]
 ) {
+  background: var(--xdm-bg-hover) !important;
   background-color: var(--xdm-bg-hover) !important;
   border-color: var(--xdm-border) !important;
+}
+
+html.${DIM_CLASS} body:not(.LightsOut) :where(
+  header[role="banner"],
+  [data-testid="primaryColumn"] > div:first-child,
+  [role="main"] > div:first-child,
+  div[style*="backdrop-filter"],
+  div[style*="-webkit-backdrop-filter"],
+  div[style*="position: sticky"],
+  div[style*="position:sticky"]
+) {
+  background: var(--xdm-bg) !important;
+  background-color: var(--xdm-bg) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 html.${DIM_CLASS} body:not(.LightsOut) :where(
@@ -304,8 +322,19 @@ html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color: rgb(255, 255, 
 html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color:rgb(255,255,255)"],
 html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color: rgba(255, 255, 255, 1)"],
 html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color:rgba(255,255,255,1)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color: rgba(255, 255, 255, 0"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color:rgba(255,255,255,0"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background: rgb(255, 255, 255)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background:rgb(255,255,255)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background: rgba(255, 255, 255, 1)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background:rgba(255,255,255,1)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background: rgba(255, 255, 255, 0"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background:rgba(255,255,255,0"],
 html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color: rgb(247, 249, 249)"],
-html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color:rgb(247,249,249)"] {
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color:rgb(247,249,249)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background: rgb(247, 249, 249)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background:rgb(247,249,249)"] {
+  background: var(--xdm-bg) !important;
   background-color: var(--xdm-bg) !important;
 }
 
@@ -313,8 +342,17 @@ html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color: rgb(239, 243, 
 html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color:rgb(239,243,244)"],
 html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color: rgba(239, 243, 244, 1)"],
 html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color:rgba(239,243,244,1)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color: rgba(239, 243, 244, 0"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color:rgba(239,243,244,0"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background: rgb(239, 243, 244)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background:rgb(239,243,244)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background: rgba(239, 243, 244, 1)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background:rgba(239,243,244,1)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background: rgba(239, 243, 244, 0"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background:rgba(239,243,244,0"],
 html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color: rgb(239 243 244)"],
 html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color: #eff3f4"] {
+  background: var(--xdm-bg-hover) !important;
   background-color: var(--xdm-bg-hover) !important;
 }
 
@@ -323,7 +361,28 @@ html.${DIM_CLASS} body:not(.LightsOut) [style*="border-color:rgb(207,217,222)"],
 html.${DIM_CLASS} body:not(.LightsOut) [style*="border-color: rgba(207, 217, 222, 1)"],
 html.${DIM_CLASS} body:not(.LightsOut) [style*="border-color:rgba(207,217,222,1)"],
 html.${DIM_CLASS} body:not(.LightsOut) [style*="border-color: rgb(239, 243, 244)"],
-html.${DIM_CLASS} body:not(.LightsOut) [style*="border-color:rgb(239,243,244)"] {
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-color:rgb(239,243,244)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-left-color: rgb(207, 217, 222)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-left-color:rgb(207,217,222)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-right-color: rgb(207, 217, 222)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-right-color:rgb(207,217,222)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-bottom-color: rgb(207, 217, 222)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-bottom-color:rgb(207,217,222)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-top-color: rgb(207, 217, 222)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-top-color:rgb(207,217,222)"] {
+  border-color: var(--xdm-border) !important;
+  border-left-color: var(--xdm-border) !important;
+  border-right-color: var(--xdm-border) !important;
+  border-bottom-color: var(--xdm-border) !important;
+  border-top-color: var(--xdm-border) !important;
+}
+
+html.${DIM_CLASS} body:not(.LightsOut) :where(
+  button,
+  [role="button"],
+  [style*="position: fixed"],
+  [style*="position:fixed"]
+) {
   border-color: var(--xdm-border) !important;
 }
 
@@ -580,19 +639,48 @@ html.${DIM_CLASS} .r-1niwhzg.r-633pao {
     if (
       computed === "rgb(0, 0, 0)" ||
       computed === "rgba(0, 0, 0, 1)" ||
-      computed === "rgb(255, 255, 255)" ||
-      computed === "rgba(255, 255, 255, 1)" ||
-      computed === "rgb(247, 249, 249)" ||
-      computed === "rgba(247, 249, 249, 1)"
+      isLightBackground(computed)
     ) {
       element.classList.add("xdm-dimmed");
     } else if (
       computed === "rgb(24, 24, 27)" ||
       computed === "rgb(239, 243, 244)" ||
-      computed === "rgba(239, 243, 244, 1)"
+      computed === "rgba(239, 243, 244, 1)" ||
+      isLightElevatedBackground(computed)
     ) {
       element.classList.add("xdm-dimmed-elevated");
     }
+  }
+
+  function isLightBackground(value) {
+    const color = parseRgb(value);
+    if (!color || color.a === 0) {
+      return false;
+    }
+    return color.r >= 245 && color.g >= 245 && color.b >= 245;
+  }
+
+  function isLightElevatedBackground(value) {
+    const color = parseRgb(value);
+    if (!color || color.a === 0) {
+      return false;
+    }
+    return color.r >= 232 && color.g >= 232 && color.b >= 232;
+  }
+
+  function parseRgb(value) {
+    const match = String(value || "").match(
+      /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*([\d.]+))?\s*\)$/i
+    );
+    if (!match) {
+      return null;
+    }
+    return {
+      r: Number(match[1]),
+      g: Number(match[2]),
+      b: Number(match[3]),
+      a: match[4] === undefined ? 1 : Number(match[4])
+    };
   }
 
   function safeComputedBackground(element) {
