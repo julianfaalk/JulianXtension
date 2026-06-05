@@ -159,9 +159,10 @@
       bgHover: `hsl(${hue}, ${Math.round(sat * 0.74)}%, 16%)`,
       bgElevated: `hsl(${hue}, ${Math.round(sat * 0.71)}%, 20%)`,
       backdrop: `hsla(${hue}, ${sat}%, 13%, 0.85)`,
+      scrim: `hsla(${hue}, ${Math.round(sat * 0.55)}%, 8%, 0.72)`,
       text: `hsl(${hue}, ${Math.round(sat * 0.32)}%, 60%)`,
       border: `hsl(${hue}, ${borderSat}%, 26%)`,
-      borderSubtle: `hsl(${hue}, ${borderSat}%, 22%)`,
+      borderSubtle: `hsl(${hue}, ${borderSat}%, 18%)`,
       bgRaw: `${hue} ${sat}% 13%`,
       borderRaw: `${hue} ${borderSat}% 26%`,
       mutedRaw: `${hue} ${borderSat}% 55%`,
@@ -180,6 +181,7 @@ html.${DIM_CLASS} {
   --xdm-bg-hover: ${p.bgHover};
   --xdm-bg-elevated: ${p.bgElevated};
   --xdm-backdrop: ${p.backdrop};
+  --xdm-scrim: ${p.scrim};
   --xdm-text: ${p.text};
   --xdm-border: ${p.border};
   --xdm-border-subtle: ${p.borderSubtle};
@@ -385,8 +387,17 @@ html.${DIM_CLASS} body:not(.LightsOut) :where(
   [data-testid="sidebarColumn"],
   [data-testid="sidebarColumn"] > div,
   [data-testid="cellInnerDiv"],
+  [data-testid="toolBar"],
+  [data-testid="tweetTextareaRootContainer"],
+  [data-testid="tweetTextarea_0"],
+  [aria-modal="true"],
+  [role="dialog"],
   article,
   [role="separator"],
+  div[style*="border-top"],
+  div[style*="border-bottom"],
+  div[style*="border-left"],
+  div[style*="border-right"],
   .r-1kqtdi0,
   .r-1roi411,
   .r-1igl3o0,
@@ -399,6 +410,38 @@ html.${DIM_CLASS} body:not(.LightsOut) :where(
   border-right-color: var(--xdm-border-subtle) !important;
   border-bottom-color: var(--xdm-border-subtle) !important;
   border-top-color: var(--xdm-border-subtle) !important;
+  outline-color: var(--xdm-border-subtle) !important;
+  box-shadow: none !important;
+}
+
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-color: rgb(255, 255, 255)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-color:rgb(255,255,255)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-top-color: rgb(255, 255, 255)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-top-color:rgb(255,255,255)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-bottom-color: rgb(255, 255, 255)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-bottom-color:rgb(255,255,255)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-left-color: rgb(255, 255, 255)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-left-color:rgb(255,255,255)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-right-color: rgb(255, 255, 255)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-right-color:rgb(255,255,255)"] {
+  border-color: var(--xdm-border-subtle) !important;
+  border-left-color: var(--xdm-border-subtle) !important;
+  border-right-color: var(--xdm-border-subtle) !important;
+  border-bottom-color: var(--xdm-border-subtle) !important;
+  border-top-color: var(--xdm-border-subtle) !important;
+}
+
+html.${DIM_CLASS} body:not(.LightsOut) :where(
+  .r-5zmot,
+  [style*="background-color: rgba(91, 112, 131"],
+  [style*="background-color:rgba(91,112,131"],
+  [style*="background: rgba(91, 112, 131"],
+  [style*="background:rgba(91,112,131"]
+) {
+  background: var(--xdm-scrim) !important;
+  background-color: var(--xdm-scrim) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 html.${DIM_CLASS} body:not(.LightsOut) :where(
@@ -437,7 +480,8 @@ html.${DIM_CLASS} .r-1niwhzg.r-sdzlij {
 }
 
 html.${DIM_CLASS} .r-5zmot {
-  background-color: var(--xdm-backdrop) !important;
+  background: var(--xdm-scrim) !important;
+  background-color: var(--xdm-scrim) !important;
 }
 
 html.${DIM_CLASS} .r-1shrkeu,
