@@ -161,6 +161,7 @@
       backdrop: `hsla(${hue}, ${sat}%, 13%, 0.85)`,
       text: `hsl(${hue}, ${Math.round(sat * 0.32)}%, 60%)`,
       border: `hsl(${hue}, ${borderSat}%, 26%)`,
+      borderSubtle: `hsl(${hue}, ${borderSat}%, 22%)`,
       bgRaw: `${hue} ${sat}% 13%`,
       borderRaw: `${hue} ${borderSat}% 26%`,
       mutedRaw: `${hue} ${borderSat}% 55%`,
@@ -181,6 +182,7 @@ html.${DIM_CLASS} {
   --xdm-backdrop: ${p.backdrop};
   --xdm-text: ${p.text};
   --xdm-border: ${p.border};
+  --xdm-border-subtle: ${p.borderSubtle};
 }
 
 html.${DIM_CLASS} body.LightsOut {
@@ -375,6 +377,28 @@ html.${DIM_CLASS} body:not(.LightsOut) [style*="border-top-color:rgb(207,217,222
   border-right-color: var(--xdm-border) !important;
   border-bottom-color: var(--xdm-border) !important;
   border-top-color: var(--xdm-border) !important;
+}
+
+html.${DIM_CLASS} body:not(.LightsOut) :where(
+  [data-testid="primaryColumn"],
+  [data-testid="primaryColumn"] > div,
+  [data-testid="sidebarColumn"],
+  [data-testid="sidebarColumn"] > div,
+  [data-testid="cellInnerDiv"],
+  article,
+  [role="separator"],
+  .r-1kqtdi0,
+  .r-1roi411,
+  .r-1igl3o0,
+  .r-rull8r,
+  .r-2sztyj,
+  .r-1phboty
+) {
+  border-color: var(--xdm-border-subtle) !important;
+  border-left-color: var(--xdm-border-subtle) !important;
+  border-right-color: var(--xdm-border-subtle) !important;
+  border-bottom-color: var(--xdm-border-subtle) !important;
+  border-top-color: var(--xdm-border-subtle) !important;
 }
 
 html.${DIM_CLASS} body:not(.LightsOut) :where(
