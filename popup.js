@@ -412,7 +412,7 @@ function i18nMessage(key, fallback = "") {
 }
 
 function normalizeXDimTheme(value) {
-  const allowed = new Set(["dim", "slate", "jade", "aurora", "plum", "dusk", "ember", "custom"]);
+  const allowed = new Set(["dim", "slate", "jade", "plum", "dusk", "ember", "custom"]);
   return allowed.has(value) ? value : "dim";
 }
 

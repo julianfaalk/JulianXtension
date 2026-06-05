@@ -359,12 +359,6 @@ code {
   outline-color: #1d9bf0;
 }
 
-.xdim-aurora-dot {
-  background:
-    radial-gradient(circle at 30% 25%, hsl(170, 66%, 54%) 0 18%, transparent 19%),
-    linear-gradient(135deg, hsl(188, 48%, 29%), hsl(214, 46%, 23%) 54%, hsl(148, 42%, 29%));
-}
-
 .xdim-custom-dot {
   background: conic-gradient(
     hsl(0, 45%, 32%),
