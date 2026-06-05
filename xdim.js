@@ -49,10 +49,6 @@
 
   ensureBaseCss();
 
-  if (localStorage.getItem(LOCAL_CACHE_KEY) !== "0" && prefersDark()) {
-    document.documentElement.classList.add(DIM_CLASS);
-  }
-
   chrome.storage.local.get(["enabled", "theme", "customHue", "birdLogo"], (stored) => {
     activeTheme = normalizeTheme(stored.theme);
     customHue = normalizeHue(stored.customHue);
@@ -69,7 +65,7 @@
     if (enabled && shouldApplyImmediately()) {
       applyDim();
       scheduleFullRescans();
-    } else if (!enabled) {
+    } else {
       removeDim();
     }
 
@@ -102,9 +98,11 @@
       if (enabled) {
         suspendedForLight = false;
         startBodyObserver();
-        applyDim();
         activateLightsOut();
-        scheduleFullRescans();
+        syncDimWithTheme();
+        for (const delay of [400, 1200]) {
+          setTimeout(syncDimWithTheme, delay);
+        }
       } else {
         stopBodyObserver();
         removeDim();
@@ -401,8 +399,10 @@ html.${DIM_CLASS} .r-1niwhzg.r-633pao {
 
     domObserver = new MutationObserver((mutations) => {
       try {
-        if (enabled && !suspendedForLight && !document.documentElement.classList.contains(DIM_CLASS)) {
+        if (enabled && shouldApplyImmediately() && !document.documentElement.classList.contains(DIM_CLASS)) {
           applyDim();
+        } else if (!shouldApplyImmediately() && document.documentElement.classList.contains(DIM_CLASS)) {
+          removeDim();
         }
 
         if (enabled && document.documentElement.classList.contains(DIM_CLASS)) {
@@ -809,12 +809,8 @@ path[data-xdm-bird] {
     }
   }
 
-  function prefersDark() {
-    return !window.matchMedia || window.matchMedia("(prefers-color-scheme: dark)").matches;
-  }
-
   function shouldApplyImmediately() {
-    return prefersDark() || document.body?.classList.contains("LightsOut");
+    return document.body?.classList.contains("LightsOut");
   }
 
   function cacheEnabled(value) {
