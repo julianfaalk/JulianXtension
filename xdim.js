@@ -33,8 +33,6 @@
   let scanFrame = 0;
   let birdInterval = 0;
   let switchingToDim = false;
-  let suspendedForLight = false;
-  let seenLightsOut = false;
   let birdLogo = false;
 
   const pendingScanRoots = new Set();
@@ -62,7 +60,7 @@
     cacheEnabled(enabled);
     ensureBaseCss();
 
-    if (enabled && shouldApplyImmediately()) {
+    if (enabled) {
       applyDim();
       scheduleFullRescans();
     } else {
@@ -96,13 +94,10 @@
       cacheEnabled(enabled);
 
       if (enabled) {
-        suspendedForLight = false;
         startBodyObserver();
+        applyDim();
         activateLightsOut();
-        syncDimWithTheme();
-        for (const delay of [400, 1200]) {
-          setTimeout(syncDimWithTheme, delay);
-        }
+        scheduleFullRescans();
       } else {
         stopBodyObserver();
         removeDim();
@@ -123,6 +118,7 @@
       syncThemeColor();
       updateSettingsButtonColor();
       if (enabled) {
+        applyDim();
         fullRescan();
       }
     }
@@ -214,6 +210,121 @@ html.${DIM_CLASS} [data-theme="dark"] {
 html.${DIM_CLASS},
 html.${DIM_CLASS} body {
   background-color: var(--xdm-bg) !important;
+  color: #e7e9ea !important;
+  color-scheme: dark !important;
+}
+
+html.${DIM_CLASS} body:not(.LightsOut) :where(
+  main,
+  header,
+  nav,
+  aside,
+  section,
+  article,
+  footer,
+  [role="main"],
+  [role="banner"],
+  [role="navigation"],
+  [role="complementary"],
+  [data-testid="primaryColumn"],
+  [data-testid="sidebarColumn"],
+  [data-testid="cellInnerDiv"],
+  [data-testid="toolBar"],
+  [data-testid="tweetTextareaRootContainer"],
+  [data-testid="tweetTextarea_0"],
+  #react-root,
+  #react-root > div
+) {
+  background-color: var(--xdm-bg) !important;
+  color: #e7e9ea !important;
+}
+
+html.${DIM_CLASS} body:not(.LightsOut) :where(
+  [data-testid="sidebarColumn"] section,
+  [role="complementary"] section,
+  aside section,
+  form[role="search"],
+  [role="dialog"],
+  [role="menu"],
+  [role="listbox"],
+  [data-testid="HoverCard"]
+) {
+  background-color: var(--xdm-bg-hover) !important;
+  border-color: var(--xdm-border) !important;
+}
+
+html.${DIM_CLASS} body:not(.LightsOut) :where(
+  span,
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  label,
+  time,
+  small,
+  div[dir="auto"],
+  [role="heading"],
+  [data-testid="tweetText"],
+  [data-testid="tweetText"] *,
+  [data-testid="User-Name"] *,
+  [data-testid="UserName"] *,
+  [data-testid="cellInnerDiv"] [dir="auto"]
+),
+html.${DIM_CLASS} body:not(.LightsOut) .r-18jsvk2,
+html.${DIM_CLASS} body:not(.LightsOut) [style*="color: rgb(15, 20, 25)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="color:rgb(15,20,25)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="color: rgba(15, 20, 25, 1)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="color:rgba(15,20,25,1)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="color: #0f1419"] {
+  color: #e7e9ea !important;
+}
+
+html.${DIM_CLASS} body:not(.LightsOut) :where(
+  time,
+  [datetime],
+  small,
+  figcaption,
+  [data-testid="User-Name"] a[href*="/status/"] *
+),
+html.${DIM_CLASS} body:not(.LightsOut) .r-1bwzh9t,
+html.${DIM_CLASS} body:not(.LightsOut) .r-1cvl2hr,
+html.${DIM_CLASS} body:not(.LightsOut) [style*="color: rgb(83, 100, 113)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="color:rgb(83,100,113)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="color: rgba(83, 100, 113, 1)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="color:rgba(83,100,113,1)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="color: rgb(101, 119, 134)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="color:rgb(101,119,134)"] {
+  color: var(--xdm-text) !important;
+}
+
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color: rgb(255, 255, 255)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color:rgb(255,255,255)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color: rgba(255, 255, 255, 1)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color:rgba(255,255,255,1)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color: rgb(247, 249, 249)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color:rgb(247,249,249)"] {
+  background-color: var(--xdm-bg) !important;
+}
+
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color: rgb(239, 243, 244)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color:rgb(239,243,244)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color: rgba(239, 243, 244, 1)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color:rgba(239,243,244,1)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color: rgb(239 243 244)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color: #eff3f4"] {
+  background-color: var(--xdm-bg-hover) !important;
+}
+
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-color: rgb(207, 217, 222)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-color:rgb(207,217,222)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-color: rgba(207, 217, 222, 1)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-color:rgba(207,217,222,1)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-color: rgb(239, 243, 244)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-color:rgb(239,243,244)"] {
+  border-color: var(--xdm-border) !important;
 }
 
 html.${DIM_CLASS} [style*="background-color: rgb(0, 0, 0)"],
@@ -352,18 +463,10 @@ html.${DIM_CLASS} .r-1niwhzg.r-633pao {
       return;
     }
 
-    const hasLightsOut = document.body.classList.contains("LightsOut");
     const isActive = document.documentElement.classList.contains(DIM_CLASS);
-
-    if (hasLightsOut) {
-      suspendedForLight = false;
-      applyDim();
-      if (!isActive) {
-        scheduleFullRescans();
-      }
-    } else if (isActive && seenLightsOut) {
-      suspendedForLight = true;
-      removeDim();
+    applyDim();
+    if (!isActive) {
+      scheduleFullRescans();
     }
   }
 
@@ -372,16 +475,7 @@ html.${DIM_CLASS} .r-1niwhzg.r-633pao {
       return;
     }
 
-    if (document.body.classList.contains("LightsOut")) {
-      seenLightsOut = true;
-    }
-
-    bodyObserver = new MutationObserver(() => {
-      if (document.body.classList.contains("LightsOut")) {
-        seenLightsOut = true;
-      }
-      syncDimWithTheme();
-    });
+    bodyObserver = new MutationObserver(syncDimWithTheme);
     bodyObserver.observe(document.body, { attributes: true, attributeFilter: ["class"] });
   }
 
@@ -399,10 +493,8 @@ html.${DIM_CLASS} .r-1niwhzg.r-633pao {
 
     domObserver = new MutationObserver((mutations) => {
       try {
-        if (enabled && shouldApplyImmediately() && !document.documentElement.classList.contains(DIM_CLASS)) {
+        if (enabled && !document.documentElement.classList.contains(DIM_CLASS)) {
           applyDim();
-        } else if (!shouldApplyImmediately() && document.documentElement.classList.contains(DIM_CLASS)) {
-          removeDim();
         }
 
         if (enabled && document.documentElement.classList.contains(DIM_CLASS)) {
@@ -483,9 +575,22 @@ html.${DIM_CLASS} .r-1niwhzg.r-633pao {
       ? safeComputedBackground(element)
       : element.style.backgroundColor;
 
-    if (background === "rgb(0, 0, 0)" || background === "rgba(0, 0, 0, 1)") {
+    const computed = background || safeComputedBackground(element);
+
+    if (
+      computed === "rgb(0, 0, 0)" ||
+      computed === "rgba(0, 0, 0, 1)" ||
+      computed === "rgb(255, 255, 255)" ||
+      computed === "rgba(255, 255, 255, 1)" ||
+      computed === "rgb(247, 249, 249)" ||
+      computed === "rgba(247, 249, 249, 1)"
+    ) {
       element.classList.add("xdm-dimmed");
-    } else if (background === "rgb(24, 24, 27)") {
+    } else if (
+      computed === "rgb(24, 24, 27)" ||
+      computed === "rgb(239, 243, 244)" ||
+      computed === "rgba(239, 243, 244, 1)"
+    ) {
       element.classList.add("xdm-dimmed-elevated");
     }
   }
@@ -810,7 +915,7 @@ path[data-xdm-bird] {
   }
 
   function shouldApplyImmediately() {
-    return document.body?.classList.contains("LightsOut");
+    return true;
   }
 
   function cacheEnabled(value) {

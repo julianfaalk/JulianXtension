@@ -1,3 +1,2 @@
 /* Intentionally empty.
-   The content script applies X Dim only after confirming X is in LightsOut.
-   Preloading a dark html background can mix with X's light text colors. */
+   X Dim applies its complete theme from xdim.js after storage is available. */
