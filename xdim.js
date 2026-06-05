@@ -34,8 +34,6 @@
   let scanFrame = 0;
   let birdInterval = 0;
   let switchingToDim = false;
-  let suspendedForLight = false;
-  let seenLightsOut = false;
   let birdLogo = false;
 
   const pendingScanRoots = new Set();
@@ -97,7 +95,6 @@
       cacheEnabled(enabled);
 
       if (enabled) {
-        suspendedForLight = false;
         startBodyObserver();
         activateLightsOut();
         syncDimWithTheme();
@@ -215,6 +212,42 @@ html.${DIM_CLASS} [data-theme="dark"] {
 html.${DIM_CLASS},
 html.${DIM_CLASS} body {
   background-color: var(--xdm-bg) !important;
+}
+
+html.${DIM_CLASS} body:not(.LightsOut) {
+  color: #e7e9ea !important;
+}
+
+html.${DIM_CLASS} body:not(.LightsOut) .r-18jsvk2,
+html.${DIM_CLASS} body:not(.LightsOut) [style*="color: rgb(15, 20, 25)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="color: rgba(15, 20, 25, 1)"] {
+  color: #e7e9ea !important;
+}
+
+html.${DIM_CLASS} body:not(.LightsOut) .r-1bwzh9t,
+html.${DIM_CLASS} body:not(.LightsOut) [style*="color: rgb(83, 100, 113)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="color: rgba(83, 100, 113, 1)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="color: rgb(101, 119, 134)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="color: rgba(101, 119, 134, 1)"] {
+  color: var(--xdm-text) !important;
+}
+
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color: rgb(255, 255, 255)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color: rgba(255, 255, 255, 1)"],
+html.${DIM_CLASS} body:not(.LightsOut) .r-14lw9ot {
+  background-color: var(--xdm-bg) !important;
+}
+
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color: rgb(247, 249, 249)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="background-color: rgba(247, 249, 249, 1)"] {
+  background-color: var(--xdm-bg-hover) !important;
+}
+
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-color: rgb(207, 217, 222)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-color: rgba(207, 217, 222, 1)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-color: rgb(239, 243, 244)"],
+html.${DIM_CLASS} body:not(.LightsOut) [style*="border-color: rgba(239, 243, 244, 1)"] {
+  border-color: var(--xdm-border) !important;
 }
 
 html.${DIM_CLASS} [style*="background-color: rgb(0, 0, 0)"],
@@ -353,18 +386,11 @@ html.${DIM_CLASS} .r-1niwhzg.r-633pao {
       return;
     }
 
-    const hasLightsOut = document.body.classList.contains("LightsOut");
     const isActive = document.documentElement.classList.contains(DIM_CLASS);
 
-    if (hasLightsOut) {
-      suspendedForLight = false;
-      applyDim();
-      if (!isActive) {
-        scheduleFullRescans();
-      }
-    } else if (isActive && seenLightsOut) {
-      suspendedForLight = true;
-      removeDim();
+    applyDim();
+    if (!isActive) {
+      scheduleFullRescans();
     }
   }
 
@@ -373,16 +399,7 @@ html.${DIM_CLASS} .r-1niwhzg.r-633pao {
       return;
     }
 
-    if (document.body.classList.contains("LightsOut")) {
-      seenLightsOut = true;
-    }
-
-    bodyObserver = new MutationObserver(() => {
-      if (document.body.classList.contains("LightsOut")) {
-        seenLightsOut = true;
-      }
-      syncDimWithTheme();
-    });
+    bodyObserver = new MutationObserver(syncDimWithTheme);
     bodyObserver.observe(document.body, { attributes: true, attributeFilter: ["class"] });
   }
 
@@ -402,8 +419,6 @@ html.${DIM_CLASS} .r-1niwhzg.r-633pao {
       try {
         if (enabled && shouldApplyImmediately() && !document.documentElement.classList.contains(DIM_CLASS)) {
           applyDim();
-        } else if (!shouldApplyImmediately() && document.documentElement.classList.contains(DIM_CLASS)) {
-          removeDim();
         }
 
         if (enabled && document.documentElement.classList.contains(DIM_CLASS)) {
@@ -811,7 +826,7 @@ path[data-xdm-bird] {
   }
 
   function shouldApplyImmediately() {
-    return document.body?.classList.contains("LightsOut");
+    return true;
   }
 
   function cacheEnabled(value) {
