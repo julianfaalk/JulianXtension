@@ -9,7 +9,11 @@
 
 const STORAGE_KEYS = {
   /* X */
-  xActive: "xthemes.active",
+  xEnabled: "enabled",
+  xTheme: "theme",
+  xCustomHue: "customHue",
+  xBirdLogo: "birdLogo",
+  xLegacyActive: "xthemes.active",
   xHideTrends: "x.hideTrends",
   xHideWhoToFollow: "x.hideWhoToFollow",
   xHideGrok: "x.hideGrok",
@@ -41,7 +45,7 @@ const STORAGE_KEYS = {
 };
 
 const APP_META = {
-  x:         { hosts: ["x.com", "twitter.com"], script: "content.js",   ping: "XTHEMES_PING" },
+  x:         { hosts: ["x.com", "twitter.com", "pro.x.com"], script: ["xdim.js", "content.js"], ping: "XDM_PING" },
   youtube:   { hosts: ["youtube.com"],          script: "youtube.js",   ping: "JT_YT_PING" },
   google:    { hosts: ["google.com", "google.de", "google.co.uk", "google.at", "google.ch"], script: "google.js", ping: "JT_GOOGLE_PING" },
   linkedin:  { hosts: ["linkedin.com"],         script: "linkedin.js",  ping: "JT_LINKEDIN_PING" },
@@ -50,47 +54,47 @@ const APP_META = {
   instagram: { hosts: ["instagram.com"],        script: "instagram.js", ping: "JT_INSTAGRAM_PING" }
 };
 
-const X_MESSAGES = {
-  applyTheme: "XTHEMES_APPLY",
-  clearTheme: "XTHEMES_CLEAR"
-};
+const SHARE_URL = (() => {
+  const text = encodeURIComponent("If you miss X's dark blue theme, X Dim Mode brings it back — free extension:");
+  const url = encodeURIComponent("https://xdim.app");
+  return `https://x.com/intent/tweet?text=${text}&url=${url}`;
+})();
 
-const PRESETS = [
-  { id: "x-dim",       name: "X Dim",       tagline: "Klassisches X Dim-Blau",
-    colors: { background: "#15202b", surface: "#1c2733", text: "#f5f8fa", mutedText: "#8899a6", accent: "#1d9bf0", button: "#1d9bf0", buttonText: "#ffffff", border: "#38444d" } },
-  { id: "lights-out",  name: "Lights Out",  tagline: "Reines Schwarz, weißer Button",
-    colors: { background: "#000000", surface: "#16181c", text: "#e7e9ea", mutedText: "#71767b", accent: "#1d9bf0", button: "#eff3f4", buttonText: "#0f1419", border: "#2f3336" } },
-  { id: "midnight",    name: "Midnight",    tagline: "Tiefes Mitternachtsblau",
-    colors: { background: "#0a0e1a", surface: "#141b2d", text: "#e8eaf6", mutedText: "#7986cb", accent: "#7986cb", button: "#5c6bc0", buttonText: "#ffffff", border: "#283048" } },
-  { id: "obsidian",    name: "Obsidian",    tagline: "Schwarz mit Cyan-Akzent",
-    colors: { background: "#05070b", surface: "#101722", text: "#f8fafc", mutedText: "#94a3b8", accent: "#38bdf8", button: "#38bdf8", buttonText: "#00111f", border: "#263244" } },
-  { id: "aurora",      name: "Aurora",      tagline: "Grünes Leuchten",
-    colors: { background: "#06120f", surface: "#0e231c", text: "#e9fff5", mutedText: "#8bb8a4", accent: "#5eead4", button: "#34d399", buttonText: "#03120d", border: "#21463a" } },
-  { id: "ultraviolet", name: "Ultraviolet", tagline: "Violett auf Tinte",
-    colors: { background: "#0b0a18", surface: "#17142a", text: "#f4f0ff", mutedText: "#a99cc8", accent: "#a78bfa", button: "#7c3aed", buttonText: "#ffffff", border: "#342a59" } },
-  { id: "ember",       name: "Ember",       tagline: "Warmes Orange",
-    colors: { background: "#15100c", surface: "#241811", text: "#fff4e8", mutedText: "#c19a7a", accent: "#fb923c", button: "#f97316", buttonText: "#160802", border: "#4a2f20" } },
-  { id: "rose-noir",   name: "Rose Noir",   tagline: "Rosa auf Anthrazit",
-    colors: { background: "#120d12", surface: "#201721", text: "#fff1f8", mutedText: "#b99bab", accent: "#f472b6", button: "#ec4899", buttonText: "#ffffff", border: "#463044" } },
-  { id: "forest",      name: "Forest",      tagline: "Dunkler Wald",
-    colors: { background: "#0f1611", surface: "#1a2620", text: "#e8f0ea", mutedText: "#7a9785", accent: "#84cc16", button: "#65a30d", buttonText: "#0a0f0b", border: "#2d3e34" } },
-  { id: "cyberpunk",   name: "Cyberpunk",   tagline: "Neon Pink & Cyan",
-    colors: { background: "#0d0221", surface: "#1a0b3d", text: "#fdf4ff", mutedText: "#c084fc", accent: "#22d3ee", button: "#e879f9", buttonText: "#0d0221", border: "#4c1d95" } },
-  { id: "nord",        name: "Nord",        tagline: "Cooles Blaugrau",
-    colors: { background: "#2e3440", surface: "#3b4252", text: "#eceff4", mutedText: "#a5adba", accent: "#88c0d0", button: "#5e81ac", buttonText: "#eceff4", border: "#4c566a" } },
-  { id: "dracula",     name: "Dracula",     tagline: "Lila-Pink Klassiker",
-    colors: { background: "#282a36", surface: "#363948", text: "#f8f8f2", mutedText: "#a8aab5", accent: "#bd93f9", button: "#ff79c6", buttonText: "#282a36", border: "#44475a" } }
-];
+const RATE_URL = "https://chromewebstore.google.com/detail/x-dim-mode/cplloghlcgkjkogmbehmkhlleopnfogc/reviews";
+const MAILERLITE_URL = "https://assets.mailerlite.com/jsonp/1436119/forms/179598724460184835/subscribe";
+const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
+const FOURTEEN_DAYS = 14 * 24 * 60 * 60 * 1000;
 
 const els = {
   tabs: document.querySelectorAll(".tab"),
   panes: document.querySelectorAll(".pane"),
   message: document.querySelector("#message"),
   /* X */
-  xStatus: document.querySelector("#xStatus"),
+  xDimDot: document.querySelector("#xDimDot"),
+  xDimToggle: document.querySelector("#xDimToggle"),
+  xDimHueSlider: document.querySelector("#xDimHueSlider"),
+  xDimHueWrap: document.querySelector("#xDimHueWrap"),
+  xThemeDots: document.querySelectorAll(".xdim-theme-dot"),
+  xCustomDot: document.querySelector(".xdim-custom-dot"),
   xHint: document.querySelector("#xHint"),
-  xThemeList: document.querySelector("#xThemeList"),
-  xClearBtn: document.querySelector("#xClearBtn"),
+  xExtrasLink: document.querySelector("#xExtrasLink"),
+  xDonateLink: document.querySelector("#xDonateLink"),
+  xCreditLink: document.querySelector("#xCreditLink"),
+  xShareLink: document.querySelector("#xShareLink"),
+  xEmailPrompt: document.querySelector("#xEmailPrompt"),
+  xEmailPromptText: document.querySelector("#xEmailPromptText"),
+  xEmailPromptClose: document.querySelector("#xEmailPromptClose"),
+  xEmailPromptForm: document.querySelector("#xEmailPromptForm"),
+  xEmailPromptInput: document.querySelector("#xEmailPromptInput"),
+  xEmailPromptBtn: document.querySelector("#xEmailPromptBtn"),
+  xEmailPromptSpam: document.querySelector("#xEmailPromptSpam"),
+  xEmailPromptSuccess: document.querySelector("#xEmailPromptSuccess"),
+  xEngagePrompt: document.querySelector("#xEngagePrompt"),
+  xEngageText: document.querySelector("#xEngageText"),
+  xEngageClose: document.querySelector("#xEngageClose"),
+  xEngageShare: document.querySelector("#xEngageShare"),
+  xEngageRate: document.querySelector("#xEngageRate"),
+  xBirdLogo: document.querySelector("#xBirdLogo"),
   xHideTrends: document.querySelector("#xHideTrends"),
   xHideWhoToFollow: document.querySelector("#xHideWhoToFollow"),
   xHideGrok: document.querySelector("#xHideGrok"),
@@ -121,7 +125,6 @@ const els = {
 
 let activeTab = null;
 let activeTabHost = "";
-let xActiveId = null;
 let messageTimer = null;
 
 document.addEventListener("DOMContentLoaded", init);
@@ -218,22 +221,76 @@ async function loadToggleStates(toggles) {
   }
 }
 
-/* ---- X Themes ---- */
+/* ---- X Dim Mode ---- */
 
 async function initX() {
-  renderXThemes();
+  await chrome.storage.local.remove(STORAGE_KEYS.xLegacyActive);
+  initXDimLinks();
+  initXDimPrompts();
 
-  const stored = await chrome.storage.local.get({ [STORAGE_KEYS.xActive]: null });
-  const record = stored[STORAGE_KEYS.xActive];
-  xActiveId = record && typeof record === "object" ? record.id || null : null;
+  const stored = await chrome.storage.local.get({
+    [STORAGE_KEYS.xEnabled]: true,
+    [STORAGE_KEYS.xTheme]: "dim",
+    [STORAGE_KEYS.xCustomHue]: 210,
+    [STORAGE_KEYS.xBirdLogo]: false
+  });
 
-  refreshXStatus();
-  highlightActiveTheme();
+  els.xDimToggle.checked = Boolean(stored[STORAGE_KEYS.xEnabled]);
+  els.xBirdLogo.checked = Boolean(stored[STORAGE_KEYS.xBirdLogo]);
+  els.xDimDot.classList.toggle("active", els.xDimToggle.checked);
+  els.xDimHueSlider.value = normalizeHue(stored[STORAGE_KEYS.xCustomHue]);
+  setActiveXDimTheme(normalizeXDimTheme(stored[STORAGE_KEYS.xTheme]));
 
-  els.xThemeList.addEventListener("click", onXThemeClick);
-  els.xClearBtn.addEventListener("click", onXClearClick);
+  els.xDimToggle.addEventListener("change", async () => {
+    const enabled = els.xDimToggle.checked;
+    await chrome.storage.local.set({ [STORAGE_KEYS.xEnabled]: enabled });
+    els.xDimDot.classList.toggle("active", enabled);
+    await ensureActiveXScript();
+    setMessage(enabled ? "Dim aktiviert" : "Dim deaktiviert", "success");
+  });
 
-  /* X.com hide-toggles (theme is handled separately through preset selection) */
+  for (const dot of els.xThemeDots) {
+    if (dot.dataset.theme === "custom") {
+      continue;
+    }
+    dot.addEventListener("click", async () => {
+      const theme = normalizeXDimTheme(dot.dataset.theme);
+      await chrome.storage.local.set({ [STORAGE_KEYS.xTheme]: theme });
+      setActiveXDimTheme(theme);
+      await ensureActiveXScript();
+      setMessage(`${dot.title || theme} gespeichert`, "success");
+    });
+  }
+
+  els.xCustomDot.addEventListener("click", async () => {
+    const hue = normalizeHue(els.xDimHueSlider.value);
+    await chrome.storage.local.set({
+      [STORAGE_KEYS.xTheme]: "custom",
+      [STORAGE_KEYS.xCustomHue]: hue
+    });
+    setActiveXDimTheme("custom");
+    await ensureActiveXScript();
+    setMessage("Custom gespeichert", "success");
+  });
+
+  els.xDimHueSlider.addEventListener("input", async () => {
+    const hue = normalizeHue(els.xDimHueSlider.value);
+    await chrome.storage.local.set({
+      [STORAGE_KEYS.xTheme]: "custom",
+      [STORAGE_KEYS.xCustomHue]: hue
+    });
+    setActiveXDimTheme("custom");
+    await ensureActiveXScript();
+  });
+
+  els.xBirdLogo.addEventListener("change", async () => {
+    await chrome.storage.local.set({ [STORAGE_KEYS.xBirdLogo]: els.xBirdLogo.checked });
+    await ensureActiveXScript();
+    setMessage(els.xBirdLogo.checked ? "Vogel-Logo aktiviert" : "X-Logo sichtbar", "success");
+  });
+
+  refreshXHint();
+
   const xToggles = [
     { input: els.xHideTrends,      storageKey: STORAGE_KEYS.xHideTrends,      settingsKey: "hideTrends",      label: "Trends" },
     { input: els.xHideWhoToFollow, storageKey: STORAGE_KEYS.xHideWhoToFollow, settingsKey: "hideWhoToFollow", label: "Who to follow" },
@@ -251,115 +308,124 @@ async function initX() {
   }
 }
 
-function renderXThemes() {
-  els.xThemeList.replaceChildren(...PRESETS.map(createThemeCard));
-}
-
-function createThemeCard(preset) {
-  const card = document.createElement("button");
-  card.type = "button";
-  card.className = "theme-card";
-  card.dataset.themeId = preset.id;
-  card.setAttribute("aria-label", `${preset.name}: ${preset.tagline}`);
-
-  const swatch = document.createElement("span");
-  swatch.className = "swatch";
-
-  const bgBlock = document.createElement("span");
-  bgBlock.className = "swatch-bg";
-  bgBlock.style.background = preset.colors.background;
-  bgBlock.style.setProperty("--swatch-text", preset.colors.text);
-
-  const surfaceBlock = document.createElement("span");
-  surfaceBlock.style.background = preset.colors.surface;
-
-  const accentBlock = document.createElement("span");
-  accentBlock.style.background = preset.colors.accent;
-
-  swatch.append(bgBlock, surfaceBlock, accentBlock);
-
-  const body = document.createElement("span");
-  body.className = "theme-card-body";
-
-  const name = document.createElement("span");
-  name.className = "theme-card-name";
-  name.textContent = preset.name;
-
-  const tagline = document.createElement("span");
-  tagline.className = "theme-card-tagline";
-  tagline.textContent = preset.tagline;
-
-  body.append(name, tagline);
-  card.append(swatch, body);
-  return card;
-}
-
-function highlightActiveTheme() {
-  for (const card of els.xThemeList.querySelectorAll(".theme-card")) {
-    card.classList.toggle("is-active", card.dataset.themeId === xActiveId);
+function setActiveXDimTheme(theme) {
+  for (const dot of els.xThemeDots) {
+    dot.classList.toggle("active", dot.dataset.theme === theme);
   }
-  els.xClearBtn.disabled = !xActiveId;
-}
 
-function refreshXStatus() {
-  if (!xActiveId) {
-    els.xStatus.textContent = "Wähle ein Theme";
+  if (theme === "custom") {
+    const hue = normalizeHue(els.xDimHueSlider.value);
+    els.xCustomDot.style.background = `hsl(${hue}, 34%, 28%)`;
   } else {
-    const preset = PRESETS.find((p) => p.id === xActiveId);
-    els.xStatus.textContent = preset ? `Aktiv: ${preset.name}` : "Aktiv";
+    els.xCustomDot.style.background = "";
   }
 
+  els.xDimHueWrap.classList.toggle("open", theme === "custom");
+}
+
+function refreshXHint() {
   if (appForHost(activeTabHost) === "x") {
-    els.xHint.textContent = "Klick auf eine Karte, um sie auf diesem Tab anzuwenden.";
+    els.xHint.textContent = "Dim wird auf diesem X-Tab sofort angewendet.";
   } else {
-    els.xHint.textContent = "Öffne x.com / twitter.com — Themes greifen dort automatisch.";
+    els.xHint.textContent = "Öffne x.com, twitter.com oder X Pro. Dim greift dort automatisch.";
   }
 }
 
-async function onXThemeClick(event) {
-  const card = event.target.closest(".theme-card");
-  if (!card) {
-    return;
-  }
+function initXDimLinks() {
+  els.xExtrasLink.title = i18nMessage("extras", "Extras");
+  els.xDonateLink.textContent = i18nMessage("donate", "Support X Dim Mode");
+  els.xCreditLink.textContent = i18nMessage("credit", "Made by @juanbuis");
+  els.xShareLink.textContent = i18nMessage("popupShareLink", "Share");
+  els.xShareLink.href = SHARE_URL;
+}
 
-  const preset = PRESETS.find((p) => p.id === card.dataset.themeId);
-  if (!preset) {
-    return;
-  }
+async function initXDimPrompts() {
+  const stored = await chrome.storage.local.get({
+    installTimestamp: null,
+    emailPromptDismissed: false,
+    engageDismissed: false
+  });
 
-  xActiveId = preset.id;
-  await chrome.storage.local.set({ [STORAGE_KEYS.xActive]: preset });
+  els.xEmailPromptText.textContent = i18nMessage("emailPromptHeading", "See what I'm building next");
+  els.xEmailPromptBtn.textContent = i18nMessage("subscribe", "Subscribe");
+  els.xEmailPromptSpam.textContent = i18nMessage("emailNoSpam", "No spam, ever.");
+  els.xEmailPromptSuccess.textContent = i18nMessage("emailSuccess", "You're in! I'll keep you posted.");
+  els.xEngageText.textContent = i18nMessage("engageQuestion", "Enjoying X Dim Mode?");
+  els.xEngageShare.textContent = i18nMessage("shareOnX", "Share on X");
+  els.xEngageShare.href = SHARE_URL;
+  els.xEngageRate.textContent = i18nMessage("engageRate", "Review");
+  els.xEngageRate.href = RATE_URL;
 
-  highlightActiveTheme();
-  refreshXStatus();
+  els.xEmailPromptClose.addEventListener("click", () => {
+    chrome.storage.local.set({ emailPromptDismissed: true });
+    els.xEmailPrompt.hidden = true;
+  });
 
-  try {
-    if (appForHost(activeTabHost) === "x") {
-      await sendToActiveTab({ type: X_MESSAGES.applyTheme, preset }, "x");
-      setMessage(`${preset.name} angewendet`, "success");
-    } else {
-      setMessage(`${preset.name} gespeichert`, "success");
+  els.xEmailPromptForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    els.xEmailPromptBtn.disabled = true;
+    els.xEmailPromptBtn.textContent = "...";
+
+    const body = new FormData();
+    body.append("fields[email]", els.xEmailPromptInput.value);
+    body.append("ml-submit", "1");
+    body.append("anticsrf", "true");
+
+    try {
+      await fetch(MAILERLITE_URL, { method: "POST", body, mode: "no-cors" });
+      els.xEmailPromptForm.hidden = true;
+      els.xEmailPromptSpam.hidden = true;
+      els.xEmailPromptSuccess.hidden = false;
+      chrome.storage.local.set({ emailPromptDismissed: true });
+    } catch (_error) {
+      els.xEmailPromptBtn.disabled = false;
+      els.xEmailPromptBtn.textContent = i18nMessage("subscribe", "Subscribe");
     }
-  } catch (error) {
-    setMessage(error.message || "Konnte nicht angewendet werden", "error");
+  });
+
+  const dismissEngage = () => {
+    chrome.storage.local.set({ engageDismissed: true });
+    els.xEngagePrompt.hidden = true;
+  };
+  els.xEngageClose.addEventListener("click", dismissEngage);
+  els.xEngageShare.addEventListener("click", dismissEngage);
+  els.xEngageRate.addEventListener("click", dismissEngage);
+
+  if (!stored.installTimestamp) {
+    return;
+  }
+
+  const elapsed = Date.now() - stored.installTimestamp;
+  if (!stored.emailPromptDismissed && elapsed >= SEVEN_DAYS) {
+    els.xEmailPrompt.hidden = false;
+    return;
+  }
+
+  if (stored.emailPromptDismissed && !stored.engageDismissed && elapsed >= FOURTEEN_DAYS) {
+    els.xEngagePrompt.hidden = false;
   }
 }
 
-async function onXClearClick() {
-  xActiveId = null;
-  await chrome.storage.local.remove(STORAGE_KEYS.xActive);
+function i18nMessage(key, fallback = "") {
+  const value = chrome.i18n?.getMessage?.(key);
+  return value || fallback;
+}
 
-  highlightActiveTheme();
-  refreshXStatus();
+function normalizeXDimTheme(value) {
+  const allowed = new Set(["dim", "slate", "jade", "aurora", "plum", "dusk", "ember", "custom"]);
+  return allowed.has(value) ? value : "dim";
+}
 
-  try {
-    if (appForHost(activeTabHost) === "x") {
-      await sendToActiveTab({ type: X_MESSAGES.clearTheme }, "x");
-    }
-    setMessage("Theme entfernt", "success");
-  } catch (error) {
-    setMessage(error.message || "Konnte nicht entfernt werden", "error");
+function normalizeHue(value) {
+  const hue = Number(value);
+  return Number.isFinite(hue) ? Math.min(360, Math.max(0, Math.round(hue))) : 210;
+}
+
+async function ensureActiveXScript() {
+  if (appForHost(activeTabHost) !== "x") {
+    return;
   }
+  await sendToActiveTab({ type: "XDM_PING" }, "x");
 }
 
 /* ---- YouTube ---- */
@@ -462,7 +528,7 @@ async function sendToActiveTab(message, app) {
     try {
       await chrome.scripting.executeScript({
         target: { tabId: activeTab.id },
-        files: [meta.script]
+        files: Array.isArray(meta.script) ? meta.script : [meta.script]
       });
     } catch (_error) {
       throw new Error("Inhaltsskript konnte nicht geladen werden");

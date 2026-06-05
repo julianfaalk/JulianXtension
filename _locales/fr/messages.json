@@ -1,0 +1,116 @@
+{
+  "extName": {
+    "message": "X Dim Mode"
+  },
+  "extDescription": {
+    "message": "Restaure l'option d'arrière-plan Sombre (bleu foncé) dans les paramètres d'affichage de X/Twitter."
+  },
+  "enableDim": {
+    "message": "Activer Sombre"
+  },
+  "settingsHint": {
+    "message": "Vous pouvez aussi basculer depuis Paramètres → Affichage."
+  },
+  "credit": {
+    "message": "Créé par @juanbuis"
+  },
+  "dimLabel": {
+    "message": "Sombre"
+  },
+  "welcomeHeadingInstall": {
+    "message": "C'est tout bon !"
+  },
+  "welcomeSubtitleInstall": {
+    "message": "X Dim Mode restaure le thème Sombre bleu foncé supprimé par X — et ajoute bien plus."
+  },
+  "welcomeHeadingUpdate": {
+    "message": "X Dim Mode vient de s'améliorer"
+  },
+  "welcomeSubtitleUpdate": {
+    "message": "Merci de votre fidélité. Voici les nouveautés :"
+  },
+  "installFeature1": {
+    "message": "Restaure le fond bleu foncé Sombre de X"
+  },
+  "installFeature2": {
+    "message": "Choisissez parmi 6 thèmes de couleur — tous agréables pour les yeux"
+  },
+  "installFeature3": {
+    "message": "Fonctionne sur X et X Pro"
+  },
+  "installFeature4": {
+    "message": "Suit automatiquement le thème de votre système"
+  },
+  "installFeature5": {
+    "message": "Activez depuis l'icône du popup ou dans Paramètres → Affichage"
+  },
+  "updateFeature1": {
+    "message": "Nouveau : 6 thèmes de couleur — tout aussi agréables pour les yeux"
+  },
+  "updateFeature2": {
+    "message": "Nouveau : Sélecteur de couleur personnalisé — choisissez la teinte que vous voulez"
+  },
+  "updateFeature3": {
+    "message": "Nouveau : Support de X Pro"
+  },
+  "updateFeature4": {
+    "message": "Amélioré : Couvre maintenant les DMs et plus de pages sur X"
+  },
+  "updateFeature5": {
+    "message": "Amélioré : Basculement automatique clair/sombre selon le thème système"
+  },
+  "updateFeature6": {
+    "message": "Corrigé : Barre de recherche, scrollbar et divers bugs d'affichage"
+  },
+  "tryNow": {
+    "message": "Essayer maintenant"
+  },
+  "shareOnX": {
+    "message": "Partager sur X"
+  },
+  "emailHeading": {
+    "message": "Accédez en avant-première à ce que je crée ensuite"
+  },
+  "emailNoSpam": {
+    "message": "Jamais de spam."
+  },
+  "subscribe": {
+    "message": "S'abonner"
+  },
+  "emailSuccess": {
+    "message": "C'est fait ! Je vous tiens au courant."
+  },
+  "emailError": {
+    "message": "Une erreur est survenue. Veuillez réessayer."
+  },
+  "emailNetworkError": {
+    "message": "Erreur réseau. Veuillez réessayer."
+  },
+  "popupShareLink": {
+    "message": "Partager"
+  },
+  "emailPromptHeading": {
+    "message": "Découvrez ce que je crée ensuite"
+  },
+  "engageQuestion": {
+    "message": "Vous aimez X Dim Mode ?"
+  },
+  "engageRate": {
+    "message": "Avis"
+  },
+  "moreOptions": {
+    "message": "Plus"
+  },
+  "donate": {
+    "message": "Soutenir X Dim Mode"
+  },
+  "extras": {
+    "message": "Extras"
+  },
+  "birdLogo": {
+    "message": "Logo classique de l’oiseau"
+  },
+  "installFeature6": {
+    "message": "Plus confortable pour les yeux — les arrière-plans sombres réduisent la diffusion lumineuse pour les personnes astigmates"
+  }
+}

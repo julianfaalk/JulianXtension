@@ -97,7 +97,7 @@
     }
   });
 
-  loadStoredTheme();
+  clearStoredLegacyTheme();
   loadStoredHides();
 
   async function loadStoredHides() {
@@ -179,6 +179,14 @@ html.${HIDE_CLASS.grok} div:has(> button[aria-label="Grok" i]):not(nav) {
       if (preset) {
         applyTheme(preset);
       }
+    } catch (_error) {
+      /* no-op */
+    }
+  }
+
+  async function clearStoredLegacyTheme() {
+    try {
+      await chrome.storage.local.remove(STORAGE_KEY);
     } catch (_error) {
       /* no-op */
     }

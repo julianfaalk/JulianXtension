@@ -216,7 +216,408 @@ code {
   opacity: 0.45;
 }
 
-/* ---- Theme grid (X pane) ---- */
+/* ---- X Dim Mode controls ---- */
+
+.xdim-card {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #15202b;
+  color: #e7e9ea;
+}
+
+.xdim-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.xdim-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.xdim-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #536471;
+  transition: background 160ms ease;
+}
+
+.xdim-dot.active {
+  background: #1d9bf0;
+}
+
+.xdim-extras-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-left: auto;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #536471;
+  text-decoration: none;
+  transition: color 160ms ease, background 160ms ease;
+}
+
+.xdim-extras-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #8b98a5;
+}
+
+.xdim-extras-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+.xdim-switch {
+  position: relative;
+  display: inline-flex;
+  width: 44px;
+  height: 24px;
+}
+
+.xdim-switch input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.xdim-slider {
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  background: #38444d;
+  transition: background 160ms ease;
+}
+
+.xdim-slider::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  bottom: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #e7e9ea;
+  transition: transform 160ms ease;
+}
+
+.xdim-switch input:checked + .xdim-slider {
+  background: #1d9bf0;
+}
+
+.xdim-switch input:checked + .xdim-slider::before {
+  transform: translateX(20px);
+}
+
+.xdim-themes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+  padding: 7px 0 2px;
+}
+
+.xdim-theme-dot {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: transform 140ms ease, outline-color 160ms ease;
+}
+
+.xdim-theme-dot:hover {
+  transform: scale(1.12);
+}
+
+.xdim-theme-dot.active {
+  outline-color: #1d9bf0;
+}
+
+.xdim-aurora-dot {
+  background:
+    radial-gradient(circle at 30% 25%, hsl(170, 66%, 54%) 0 18%, transparent 19%),
+    linear-gradient(135deg, hsl(188, 48%, 29%), hsl(214, 46%, 23%) 54%, hsl(148, 42%, 29%));
+}
+
+.xdim-custom-dot {
+  background: conic-gradient(
+    hsl(0, 45%, 32%),
+    hsl(45, 45%, 32%),
+    hsl(90, 45%, 32%),
+    hsl(135, 45%, 32%),
+    hsl(180, 45%, 32%),
+    hsl(225, 45%, 32%),
+    hsl(270, 45%, 32%),
+    hsl(315, 45%, 32%),
+    hsl(360, 45%, 32%)
+  );
+}
+
+.xdim-hue-wrap {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 180ms ease, opacity 140ms ease;
+}
+
+.xdim-hue-wrap.open {
+  max-height: 28px;
+  opacity: 1;
+}
+
+.xdim-hue-slider {
+  display: block;
+  width: 100%;
+  height: 16px;
+  border: 0;
+  background: transparent;
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.xdim-hue-slider::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(to right,
+    hsl(0, 60%, 45%),
+    hsl(30, 60%, 45%),
+    hsl(60, 60%, 45%),
+    hsl(90, 60%, 45%),
+    hsl(120, 60%, 45%),
+    hsl(150, 60%, 45%),
+    hsl(180, 60%, 45%),
+    hsl(210, 60%, 45%),
+    hsl(240, 60%, 45%),
+    hsl(270, 60%, 45%),
+    hsl(300, 60%, 45%),
+    hsl(330, 60%, 45%),
+    hsl(360, 60%, 45%)
+  );
+}
+
+.xdim-hue-slider::-webkit-slider-thumb {
+  width: 16px;
+  height: 16px;
+  margin-top: -4px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  appearance: none;
+}
+
+.xdim-hue-slider::-moz-range-track {
+  height: 8px;
+  border: 0;
+  border-radius: 4px;
+  background: linear-gradient(to right,
+    hsl(0, 60%, 45%),
+    hsl(30, 60%, 45%),
+    hsl(60, 60%, 45%),
+    hsl(90, 60%, 45%),
+    hsl(120, 60%, 45%),
+    hsl(150, 60%, 45%),
+    hsl(180, 60%, 45%),
+    hsl(210, 60%, 45%),
+    hsl(240, 60%, 45%),
+    hsl(270, 60%, 45%),
+    hsl(300, 60%, 45%),
+    hsl(330, 60%, 45%),
+    hsl(360, 60%, 45%)
+  );
+}
+
+.xdim-hue-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.xdim-email-prompt,
+.xdim-engage {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #38444d;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.xdim-email-prompt[hidden],
+.xdim-engage[hidden] {
+  display: none;
+}
+
+.xdim-prompt-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  color: #e7e9ea;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.xdim-prompt-close {
+  flex: 0 0 auto;
+  padding: 0 2px;
+  border: 0;
+  background: transparent;
+  color: #536471;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.xdim-prompt-close:hover {
+  color: #e7e9ea;
+}
+
+.xdim-email-row,
+.xdim-engage-actions {
+  display: grid;
+  gap: 6px;
+}
+
+.xdim-email-input,
+.xdim-email-btn,
+.xdim-engage-btn {
+  width: 100%;
+  min-height: 32px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 12px;
+}
+
+.xdim-email-input {
+  padding: 0 10px;
+  border: 1px solid #38444d;
+  background: rgba(0, 0, 0, 0.25);
+  color: #e7e9ea;
+  outline: 0;
+}
+
+.xdim-email-input:focus {
+  border-color: #1d9bf0;
+}
+
+.xdim-email-input::placeholder {
+  color: #536471;
+}
+
+.xdim-email-btn,
+.xdim-engage-btn:first-child {
+  border: 0;
+  background: #1d9bf0;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.xdim-engage-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #38444d;
+  background: transparent;
+  color: #e7e9ea;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.xdim-email-btn:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.xdim-prompt-sub,
+.xdim-prompt-success {
+  margin: 0;
+  font-size: 11px;
+  color: #536471;
+}
+
+.xdim-prompt-success {
+  color: #00ba7c;
+}
+
+.xdim-prompt-success[hidden] {
+  display: none;
+}
+
+.xdim-donate-btn {
+  display: block;
+  width: 100%;
+  padding: 8px 0;
+  border: 1px solid #38444d;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e7e9ea;
+  text-align: center;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.xdim-donate-btn:hover {
+  border-color: #536471;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.xdim-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.xdim-footer a {
+  color: #536471;
+  text-decoration: none;
+}
+
+.xdim-footer a:hover {
+  color: #8b98a5;
+}
+
+.xdim-footer-sep {
+  color: #38444d;
+}
+
+/* ---- Legacy theme grid (kept for old markup compatibility) ---- */
 
 .theme-grid {
   display: grid;

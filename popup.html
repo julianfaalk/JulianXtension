@@ -43,18 +43,81 @@
         </button>
       </nav>
 
-      <!-- X Themes pane -->
+      <!-- X Dim Mode pane -->
       <section class="pane is-active" data-app="x" role="tabpanel">
-        <header class="pane-head">
-          <div class="pane-title-block">
-            <h1 id="xStatus" class="pane-title">Wähle ein Theme</h1>
-            <p id="xHint" class="pane-hint">Klick auf eine Karte, um sie auf x.com anzuwenden.</p>
+        <div class="xdim-card">
+          <header class="xdim-head">
+            <h1 class="xdim-title"><span id="xDimDot" class="xdim-dot" aria-hidden="true"></span>X Dim Mode</h1>
+            <a class="xdim-extras-btn" href="extras.html" id="xExtrasLink" title="Extras" aria-label="Extras">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1l2.4 7.2L22 12l-7.6 3.8L12 23l-2.4-7.2L2 12l7.6-3.8z"/></svg>
+            </a>
+            <label class="xdim-switch">
+              <input type="checkbox" id="xDimToggle">
+              <span class="xdim-slider" aria-hidden="true"></span>
+            </label>
+          </header>
+
+          <div class="xdim-themes" aria-label="X Dim themes">
+            <button type="button" class="xdim-theme-dot" data-theme="dim" style="background: hsl(210, 34%, 28%)" title="Dim"></button>
+            <button type="button" class="xdim-theme-dot" data-theme="slate" style="background: hsl(210, 8%, 33%)" title="Slate"></button>
+            <button type="button" class="xdim-theme-dot" data-theme="jade" style="background: hsl(150, 34%, 28%)" title="Jade"></button>
+            <button type="button" class="xdim-theme-dot xdim-aurora-dot" data-theme="aurora" title="Aurora"></button>
+            <button type="button" class="xdim-theme-dot" data-theme="plum" style="background: hsl(270, 34%, 28%)" title="Plum"></button>
+            <button type="button" class="xdim-theme-dot" data-theme="dusk" style="background: hsl(330, 34%, 28%)" title="Dusk"></button>
+            <button type="button" class="xdim-theme-dot" data-theme="ember" style="background: hsl(25, 34%, 28%)" title="Ember"></button>
+            <button type="button" class="xdim-theme-dot xdim-custom-dot" data-theme="custom" title="Custom"></button>
           </div>
-          <button type="button" id="xClearBtn" class="ghost-btn" title="Theme entfernen">Reset</button>
-        </header>
-        <div id="xThemeList" class="theme-grid" aria-label="Themes"></div>
+
+          <div class="xdim-hue-wrap" id="xDimHueWrap">
+            <input type="range" class="xdim-hue-slider" id="xDimHueSlider" min="0" max="360" value="210" aria-label="Custom hue">
+          </div>
+
+          <div class="xdim-email-prompt" id="xEmailPrompt" hidden>
+            <div class="xdim-prompt-head">
+              <span id="xEmailPromptText"></span>
+              <button type="button" class="xdim-prompt-close" id="xEmailPromptClose" aria-label="Close">&times;</button>
+            </div>
+            <form class="xdim-email-row" id="xEmailPromptForm">
+              <input class="xdim-email-input" type="email" placeholder="you@email.com" required id="xEmailPromptInput">
+              <button class="xdim-email-btn" type="submit" id="xEmailPromptBtn"></button>
+            </form>
+            <p class="xdim-prompt-sub" id="xEmailPromptSpam"></p>
+            <p class="xdim-prompt-success" id="xEmailPromptSuccess" hidden></p>
+          </div>
+
+          <div class="xdim-engage" id="xEngagePrompt" hidden>
+            <div class="xdim-prompt-head">
+              <span id="xEngageText"></span>
+              <button type="button" class="xdim-prompt-close" id="xEngageClose" aria-label="Close">&times;</button>
+            </div>
+            <div class="xdim-engage-actions">
+              <a class="xdim-engage-btn" id="xEngageShare" target="_blank" rel="noreferrer"></a>
+              <a class="xdim-engage-btn" id="xEngageRate" target="_blank" rel="noreferrer"></a>
+            </div>
+          </div>
+
+          <a class="xdim-donate-btn" href="https://buymeacoffee.com/juan" target="_blank" rel="noreferrer" id="xDonateLink"></a>
+          <div class="xdim-footer">
+            <a href="https://x.com/juanbuis" target="_blank" rel="noreferrer" id="xCreditLink"></a>
+            <span class="xdim-footer-sep">&middot;</span>
+            <a target="_blank" rel="noreferrer" id="xShareLink"></a>
+          </div>
+
+          <p id="xHint" class="pane-hint">Restores the classic dark blue Dim background on X.</p>
+        </div>
 
         <h2 class="section-heading">X.com Tweaks</h2>
+
+        <label class="setting-row">
+          <span class="setting-text">
+            <span class="setting-title">Klassisches Twitter-Vogel-Logo</span>
+            <span class="setting-sub">Ersetzt X-Logos auf X durch den klassischen Vogel.</span>
+          </span>
+          <span class="switch">
+            <input type="checkbox" id="xBirdLogo">
+            <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+          </span>
+        </label>
 
         <label class="setting-row">
           <span class="setting-text">
