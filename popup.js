@@ -81,6 +81,7 @@ const els = {
   xDonateLink: document.querySelector("#xDonateLink"),
   xCreditLink: document.querySelector("#xCreditLink"),
   xShareLink: document.querySelector("#xShareLink"),
+  xVersion: document.querySelector("#xVersion"),
   xEmailPrompt: document.querySelector("#xEmailPrompt"),
   xEmailPromptText: document.querySelector("#xEmailPromptText"),
   xEmailPromptClose: document.querySelector("#xEmailPromptClose"),
@@ -337,6 +338,13 @@ function initXDimLinks() {
   els.xCreditLink.textContent = i18nMessage("credit", "Made by @juanbuis");
   els.xShareLink.textContent = i18nMessage("popupShareLink", "Share");
   els.xShareLink.href = SHARE_URL;
+  if (els.xVersion) {
+    try {
+      els.xVersion.textContent = "v" + chrome.runtime.getManifest().version;
+    } catch (_error) {
+      /* no-op */
+    }
+  }
 }
 
 async function initXDimPrompts() {
