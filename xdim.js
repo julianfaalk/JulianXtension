@@ -81,9 +81,12 @@ html.${DIM_CLASS} {
   --xdm-border: ${p.border};
 }
 
-/* Override X's own Lights Out theme variables */
+/* Override X's own Lights Out theme variables. Dim is a BACKGROUND retint:
+   keep X's bright primary foreground (--color) intact — muting it here washes
+   out every name/heading/nav label that reads var(--color) and is what made
+   the page look muddy. Only the borders move to the dim palette. */
 html.${DIM_CLASS} body.LightsOut {
-  --color: var(--xdm-text);
+  --color: rgb(231, 233, 234);
   --border: ${p.borderRaw};
   --input: ${p.borderRaw};
   --border-color: var(--xdm-border);
