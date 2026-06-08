@@ -5,37 +5,31 @@
   window.__juliansTweaksRedditLoaded = true;
 
   const STYLE_ID = "julians-tweaks-reddit-style";
-  const CLASS = {
-    hidePromoted: "julians-tweaks-reddit-hide-promoted",
-    hideRecommendations: "julians-tweaks-reddit-hide-recs",
-    hideSidebar: "julians-tweaks-reddit-hide-sidebar"
+
+  // name -> { key: storage key, class: root class toggled on <html> }
+  const FEATURES = {
+    hidePromoted: { key: "reddit.hidePromoted", class: "julians-tweaks-reddit-hide-promoted" },
+    hideRecommendations: { key: "reddit.hideRecommendations", class: "julians-tweaks-reddit-hide-recs" },
+    hideSidebar: { key: "reddit.hideSidebar", class: "julians-tweaks-reddit-hide-sidebar" },
+    hidePremium: { key: "reddit.hidePremium", class: "julians-tweaks-reddit-hide-premium" },
+    hideAppBanner: { key: "reddit.hideAppBanner", class: "julians-tweaks-reddit-hide-appbanner" }
   };
-  const STORAGE_KEYS = {
-    hidePromoted: "reddit.hidePromoted",
-    hideRecommendations: "reddit.hideRecommendations",
-    hideSidebar: "reddit.hideSidebar"
-  };
-  const MESSAGE_TYPES = {
-    ping: "JT_REDDIT_PING",
-    apply: "JT_REDDIT_APPLY"
-  };
+  const CLASS = Object.fromEntries(Object.entries(FEATURES).map(([n, f]) => [n, f.class]));
+  const MESSAGE_TYPES = { ping: "JT_REDDIT_PING", apply: "JT_REDDIT_APPLY" };
 
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (!message || typeof message !== "object") {
       return false;
     }
-
     if (message.type === MESSAGE_TYPES.ping) {
       sendResponse({ ok: true });
       return true;
     }
-
     if (message.type === MESSAGE_TYPES.apply) {
       applyAll(message.settings || {});
       sendResponse({ ok: true });
       return true;
     }
-
     return false;
   });
 
@@ -43,14 +37,10 @@
     if (areaName !== "sync") {
       return;
     }
-    if (changes[STORAGE_KEYS.hidePromoted]) {
-      toggleRootClass(CLASS.hidePromoted, Boolean(changes[STORAGE_KEYS.hidePromoted].newValue));
-    }
-    if (changes[STORAGE_KEYS.hideRecommendations]) {
-      toggleRootClass(CLASS.hideRecommendations, Boolean(changes[STORAGE_KEYS.hideRecommendations].newValue));
-    }
-    if (changes[STORAGE_KEYS.hideSidebar]) {
-      toggleRootClass(CLASS.hideSidebar, Boolean(changes[STORAGE_KEYS.hideSidebar].newValue));
+    for (const f of Object.values(FEATURES)) {
+      if (changes[f.key]) {
+        toggleRootClass(f.class, Boolean(changes[f.key].newValue));
+      }
     }
   });
 
@@ -58,16 +48,13 @@
 
   async function loadStored() {
     try {
-      const stored = await chrome.storage.sync.get({
-        [STORAGE_KEYS.hidePromoted]: false,
-        [STORAGE_KEYS.hideRecommendations]: false,
-        [STORAGE_KEYS.hideSidebar]: false
-      });
-      applyAll({
-        hidePromoted: Boolean(stored[STORAGE_KEYS.hidePromoted]),
-        hideRecommendations: Boolean(stored[STORAGE_KEYS.hideRecommendations]),
-        hideSidebar: Boolean(stored[STORAGE_KEYS.hideSidebar])
-      });
+      const defaults = Object.fromEntries(Object.values(FEATURES).map((f) => [f.key, false]));
+      const stored = await chrome.storage.sync.get(defaults);
+      const settings = {};
+      for (const [name, f] of Object.entries(FEATURES)) {
+        settings[name] = Boolean(stored[f.key]);
+      }
+      applyAll(settings);
     } catch (_error) {
       /* no-op */
     }
@@ -75,9 +62,9 @@
 
   function applyAll(settings) {
     ensureStyle();
-    toggleRootClass(CLASS.hidePromoted, Boolean(settings.hidePromoted));
-    toggleRootClass(CLASS.hideRecommendations, Boolean(settings.hideRecommendations));
-    toggleRootClass(CLASS.hideSidebar, Boolean(settings.hideSidebar));
+    for (const [name, f] of Object.entries(FEATURES)) {
+      toggleRootClass(f.class, Boolean(settings[name]));
+    }
   }
 
   function toggleRootClass(klass, on) {
@@ -113,9 +100,7 @@ html.${CLASS.hidePromoted} a[href*="/r/Advertising"][aria-label*="promoted" i] {
   display: none !important;
 }
 
-/* ---- Recommended subreddit content & sidebars ----
-   The right rail mostly hosts "Popular communities", "Trending today",
-   etc. — hide those modules. */
+/* ---- Recommended subreddit content & sidebars ---- */
 html.${CLASS.hideRecommendations} reddit-recent-pages,
 html.${CLASS.hideRecommendations} popular-communities-list,
 html.${CLASS.hideRecommendations} recommended-communities-list,
@@ -149,6 +134,31 @@ html.${CLASS.hideSidebar} .side {
 /* Expand the main column when the sidebar is hidden */
 html.${CLASS.hideSidebar} .subgrid-container {
   grid-template-columns: 1fr !important;
+}
+
+/* ---- Premium / Gold / Awards upsells ---- */
+html.${CLASS.hidePremium} a[href*="/premium"],
+html.${CLASS.hidePremium} a[href*="reddit_premium" i],
+html.${CLASS.hidePremium} [aria-label*="Reddit Premium" i],
+html.${CLASS.hidePremium} faceplate-tracker[noun*="premium" i],
+html.${CLASS.hidePremium} [aria-label*="Give Award" i],
+html.${CLASS.hidePremium} [aria-label*="Award" i][role="button"],
+html.${CLASS.hidePremium} award-button,
+html.${CLASS.hidePremium} shreddit-award-button,
+html.${CLASS.hidePremium} shreddit-async-loader[bundlename*="award" i] {
+  display: none !important;
+}
+
+/* ---- "Open in app" / use-the-app banners ---- */
+html.${CLASS.hideAppBanner} xpromo-app-selector,
+html.${CLASS.hideAppBanner} reddit-app-selector,
+html.${CLASS.hideAppBanner} shreddit-experience-tree,
+html.${CLASS.hideAppBanner} [bundlename*="xpromo" i],
+html.${CLASS.hideAppBanner} [aria-label*="Open Reddit" i],
+html.${CLASS.hideAppBanner} [aria-label*="Open in the app" i],
+html.${CLASS.hideAppBanner} [data-testid="bottom-bar"]:has([href*="play.google"]),
+html.${CLASS.hideAppBanner} [data-testid="bottom-bar"]:has([href*="apps.apple"]) {
+  display: none !important;
 }
 `;
 })();

@@ -5,62 +5,48 @@
   window.__juliansTweaksYTLoaded = true;
 
   const STYLE_ID = "julians-tweaks-yt-style";
-  const CLASS = {
-    hideShorts: "julians-tweaks-hide-shorts",
-    hideSidebar: "julians-tweaks-yt-hide-sidebar",
-    hideComments: "julians-tweaks-yt-hide-comments"
+
+  // name -> { key: storage key, class: root class toggled on <html> }
+  const FEATURES = {
+    hideShorts: { key: "youtube.hideShorts", class: "julians-tweaks-hide-shorts" },
+    hideSidebar: { key: "youtube.hideSidebar", class: "julians-tweaks-yt-hide-sidebar" },
+    hideComments: { key: "youtube.hideComments", class: "julians-tweaks-yt-hide-comments" },
+    hideHomeFeed: { key: "youtube.hideHomeFeed", class: "julians-tweaks-yt-hide-home" },
+    hideEndCards: { key: "youtube.hideEndCards", class: "julians-tweaks-yt-hide-endcards" },
+    hideLiveChat: { key: "youtube.hideLiveChat", class: "julians-tweaks-yt-hide-livechat" }
   };
-  const STORAGE_KEYS = {
-    hideShorts: "youtube.hideShorts",
-    hideSidebar: "youtube.hideSidebar",
-    hideComments: "youtube.hideComments"
-  };
-  const MESSAGE_TYPES = {
-    ping: "JT_YT_PING",
-    apply: "JT_YT_APPLY"
-  };
+  const CLASS = Object.fromEntries(Object.entries(FEATURES).map(([n, f]) => [n, f.class]));
+  const MESSAGE_TYPES = { ping: "JT_YT_PING", apply: "JT_YT_APPLY" };
 
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (!message || typeof message !== "object") {
       return false;
     }
-
     if (message.type === MESSAGE_TYPES.ping) {
       sendResponse({ ok: true });
       return true;
     }
-
     if (message.type === MESSAGE_TYPES.apply) {
       applyAll(message.settings || pickLegacy(message));
       sendResponse({ ok: true });
       return true;
     }
-
     return false;
   });
 
-  /* Backwards compat: earlier popup versions sent { hideShorts } directly
-     instead of { settings: { ... } }. */
+  /* Backwards compat: earlier popup versions sent { hideShorts } directly. */
   function pickLegacy(message) {
-    return {
-      hideShorts: Boolean(message.hideShorts),
-      hideSidebar: Boolean(message.hideSidebar),
-      hideComments: Boolean(message.hideComments)
-    };
+    return Object.fromEntries(Object.keys(FEATURES).map((n) => [n, Boolean(message[n])]));
   }
 
   chrome.storage.onChanged.addListener((changes, areaName) => {
     if (areaName !== "sync") {
       return;
     }
-    if (changes[STORAGE_KEYS.hideShorts]) {
-      toggleRootClass(CLASS.hideShorts, Boolean(changes[STORAGE_KEYS.hideShorts].newValue));
-    }
-    if (changes[STORAGE_KEYS.hideSidebar]) {
-      toggleRootClass(CLASS.hideSidebar, Boolean(changes[STORAGE_KEYS.hideSidebar].newValue));
-    }
-    if (changes[STORAGE_KEYS.hideComments]) {
-      toggleRootClass(CLASS.hideComments, Boolean(changes[STORAGE_KEYS.hideComments].newValue));
+    for (const f of Object.values(FEATURES)) {
+      if (changes[f.key]) {
+        toggleRootClass(f.class, Boolean(changes[f.key].newValue));
+      }
     }
   });
 
@@ -68,16 +54,13 @@
 
   async function loadStored() {
     try {
-      const stored = await chrome.storage.sync.get({
-        [STORAGE_KEYS.hideShorts]: false,
-        [STORAGE_KEYS.hideSidebar]: false,
-        [STORAGE_KEYS.hideComments]: false
-      });
-      applyAll({
-        hideShorts: Boolean(stored[STORAGE_KEYS.hideShorts]),
-        hideSidebar: Boolean(stored[STORAGE_KEYS.hideSidebar]),
-        hideComments: Boolean(stored[STORAGE_KEYS.hideComments])
-      });
+      const defaults = Object.fromEntries(Object.values(FEATURES).map((f) => [f.key, false]));
+      const stored = await chrome.storage.sync.get(defaults);
+      const settings = {};
+      for (const [name, f] of Object.entries(FEATURES)) {
+        settings[name] = Boolean(stored[f.key]);
+      }
+      applyAll(settings);
     } catch (_error) {
       /* no-op */
     }
@@ -85,9 +68,9 @@
 
   function applyAll(settings) {
     ensureStyleInjected();
-    toggleRootClass(CLASS.hideShorts, Boolean(settings.hideShorts));
-    toggleRootClass(CLASS.hideSidebar, Boolean(settings.hideSidebar));
-    toggleRootClass(CLASS.hideComments, Boolean(settings.hideComments));
+    for (const [name, f] of Object.entries(FEATURES)) {
+      toggleRootClass(f.class, Boolean(settings[name]));
+    }
   }
 
   function toggleRootClass(klass, on) {
@@ -105,19 +88,12 @@
     const style = document.createElement("style");
     style.id = STYLE_ID;
     style.dataset.owner = "JuliansTweaks";
-    style.textContent = HIDE_SHORTS_CSS;
+    style.textContent = CSS;
     (document.head || document.documentElement).append(style);
   }
 
-  /* applyHideShorts kept for any old callers (none in current popup) */
-  function applyHideShorts(enabled) {
-    applyAll({ hideShorts: enabled });
-  }
-  void applyHideShorts;
-
-  /* CSS only matches when <html> has the corresponding root class.
-     Toggling the class is the on/off switch. */
-  const HIDE_SHORTS_CSS = `
+  /* CSS only matches when <html> has the corresponding root class. */
+  const CSS = `
 /* === HIDE SHORTS ============================================== */
 
 /* --- Sidebar entries (mini guide + full guide) --- */
@@ -185,6 +161,31 @@ html.${CLASS.hideSidebar} ytd-watch-flexy[is-two-columns_] #primary {
 html.${CLASS.hideComments} ytd-comments,
 html.${CLASS.hideComments} ytd-comments#comments,
 html.${CLASS.hideComments} #comments {
+  display: none !important;
+}
+
+/* === HIDE HOME FEED (focus mode) ============================= */
+/* Empties the YouTube home page — subscriptions, search and the rest of
+   YouTube keep working. Scoped to page-subtype="home" so other pages stay. */
+html.${CLASS.hideHomeFeed} ytd-browse[page-subtype="home"] ytd-rich-grid-renderer,
+html.${CLASS.hideHomeFeed} ytd-browse[page-subtype="home"] #contents.ytd-rich-grid-renderer,
+html.${CLASS.hideHomeFeed} ytd-browse[page-subtype="home"] ytd-feed-filter-chip-bar-renderer {
+  display: none !important;
+}
+
+/* === HIDE END-SCREEN CARDS =================================== */
+/* The suggested-video / channel cards overlaid in the last seconds. */
+html.${CLASS.hideEndCards} .ytp-ce-element,
+html.${CLASS.hideEndCards} .ytp-ce-covering-overlay,
+html.${CLASS.hideEndCards} .ytp-endscreen-content,
+html.${CLASS.hideEndCards} .html5-endscreen {
+  display: none !important;
+}
+
+/* === HIDE LIVE CHAT ========================================== */
+html.${CLASS.hideLiveChat} ytd-live-chat-frame,
+html.${CLASS.hideLiveChat} #chat-container,
+html.${CLASS.hideLiveChat} #chat.ytd-watch-flexy {
   display: none !important;
 }
 `;

@@ -1,16 +1,16 @@
 # Julians Tweaks
 
-A Manifest V3 Chrome extension that bundles **7 per-site annoyance-killers** under one popup with **17 togglable tweaks**.
+A Manifest V3 Chrome extension that bundles **7 per-site annoyance-killers** under one popup. Settings sync across devices via `chrome.storage.sync`.
 
 ## Apps
 
 | App | Tweaks |
 |---|---|
-| **X** | X Dim Mode (6 dim themes + custom hue) · Classic bird logo · Hide Trends · Hide Who-to-Follow · Hide Grok |
-| **YouTube** | Hide Shorts · Hide Watch-Page Sidebar · Hide Comments |
+| **X** | X Dim Mode (9 themes + custom hue/saturation/darkness, adaptive light/dark) · Classic bird logo · Hide Trends · Who-to-Follow · Grok · Ads · Premium upsells · View counts |
+| **YouTube** | Hide Shorts · Watch-Page Sidebar · Comments · Home Feed (focus mode) · End-Screen Cards · Live Chat |
 | **Google** | Hide AI-Overviews · Hide Sponsored · Hide People-Also-Ask · Hide Related Searches |
 | **LinkedIn** | Hide Promoted · Hide News-Rail · Hide People-You-May-Know |
-| **Reddit** | Hide Promoted · Hide Recommendations · Hide Right Sidebar |
+| **Reddit** | Hide Promoted · Recommendations · Right Sidebar · Premium/Awards · App Banners |
 | **GitHub** | Hide Copilot CTAs · Hide Sponsor CTAs · Hide Home-Feed-Widgets |
 | **Instagram** | Hide Reels (nav, feed, profile tab) |
 

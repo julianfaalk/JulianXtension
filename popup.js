@@ -26,6 +26,9 @@ const STORAGE_KEYS = {
   ytHideShorts: "youtube.hideShorts",
   ytHideSidebar: "youtube.hideSidebar",
   ytHideComments: "youtube.hideComments",
+  ytHideHomeFeed: "youtube.hideHomeFeed",
+  ytHideEndCards: "youtube.hideEndCards",
+  ytHideLiveChat: "youtube.hideLiveChat",
   /* Google */
   googleHideAi: "google.hideAiOverview",
   googleHideSponsored: "google.hideSponsored",
@@ -39,6 +42,8 @@ const STORAGE_KEYS = {
   redditHidePromoted: "reddit.hidePromoted",
   redditHideRecs: "reddit.hideRecommendations",
   redditHideSidebar: "reddit.hideSidebar",
+  redditHidePremium: "reddit.hidePremium",
+  redditHideAppBanner: "reddit.hideAppBanner",
   /* GitHub */
   githubHideCopilot: "github.hideCopilot",
   githubHideSponsors: "github.hideSponsors",
@@ -112,6 +117,9 @@ const els = {
   ytHideShorts: document.querySelector("#ytHideShorts"),
   ytHideSidebar: document.querySelector("#ytHideSidebar"),
   ytHideComments: document.querySelector("#ytHideComments"),
+  ytHideHomeFeed: document.querySelector("#ytHideHomeFeed"),
+  ytHideEndCards: document.querySelector("#ytHideEndCards"),
+  ytHideLiveChat: document.querySelector("#ytHideLiveChat"),
   /* Google */
   googleHideAi: document.querySelector("#googleHideAi"),
   googleHideSponsored: document.querySelector("#googleHideSponsored"),
@@ -125,6 +133,8 @@ const els = {
   redditHidePromoted: document.querySelector("#redditHidePromoted"),
   redditHideRecs: document.querySelector("#redditHideRecs"),
   redditHideSidebar: document.querySelector("#redditHideSidebar"),
+  redditHidePremium: document.querySelector("#redditHidePremium"),
+  redditHideAppBanner: document.querySelector("#redditHideAppBanner"),
   /* GitHub */
   githubHideCopilot: document.querySelector("#githubHideCopilot"),
   githubHideSponsors: document.querySelector("#githubHideSponsors"),
@@ -496,7 +506,10 @@ async function initYouTube() {
   const toggles = [
     { input: els.ytHideShorts,   storageKey: STORAGE_KEYS.ytHideShorts,   settingsKey: "hideShorts",   label: "Shorts" },
     { input: els.ytHideSidebar,  storageKey: STORAGE_KEYS.ytHideSidebar,  settingsKey: "hideSidebar",  label: "Sidebar" },
-    { input: els.ytHideComments, storageKey: STORAGE_KEYS.ytHideComments, settingsKey: "hideComments", label: "Kommentare" }
+    { input: els.ytHideComments, storageKey: STORAGE_KEYS.ytHideComments, settingsKey: "hideComments", label: "Kommentare" },
+    { input: els.ytHideHomeFeed, storageKey: STORAGE_KEYS.ytHideHomeFeed, settingsKey: "hideHomeFeed", label: "Startseiten-Feed" },
+    { input: els.ytHideEndCards, storageKey: STORAGE_KEYS.ytHideEndCards, settingsKey: "hideEndCards", label: "End-Screen-Kacheln" },
+    { input: els.ytHideLiveChat, storageKey: STORAGE_KEYS.ytHideLiveChat, settingsKey: "hideLiveChat", label: "Live-Chat" }
   ];
   await loadToggleStates(toggles);
   wireToggleGroup("youtube", "JT_YT_APPLY", toggles);
@@ -531,9 +544,11 @@ async function initLinkedIn() {
 
 async function initReddit() {
   const toggles = [
-    { input: els.redditHidePromoted,  storageKey: STORAGE_KEYS.redditHidePromoted, settingsKey: "hidePromoted",        label: "Promoted" },
-    { input: els.redditHideRecs,      storageKey: STORAGE_KEYS.redditHideRecs,     settingsKey: "hideRecommendations", label: "Empfehlungen" },
-    { input: els.redditHideSidebar,   storageKey: STORAGE_KEYS.redditHideSidebar,  settingsKey: "hideSidebar",         label: "Sidebar" }
+    { input: els.redditHidePromoted,   storageKey: STORAGE_KEYS.redditHidePromoted,   settingsKey: "hidePromoted",        label: "Promoted" },
+    { input: els.redditHideRecs,       storageKey: STORAGE_KEYS.redditHideRecs,       settingsKey: "hideRecommendations", label: "Empfehlungen" },
+    { input: els.redditHideSidebar,    storageKey: STORAGE_KEYS.redditHideSidebar,    settingsKey: "hideSidebar",         label: "Sidebar" },
+    { input: els.redditHidePremium,    storageKey: STORAGE_KEYS.redditHidePremium,    settingsKey: "hidePremium",         label: "Premium & Awards" },
+    { input: els.redditHideAppBanner,  storageKey: STORAGE_KEYS.redditHideAppBanner,  settingsKey: "hideAppBanner",       label: "App-Banner" }
   ];
   await loadToggleStates(toggles);
   wireToggleGroup("reddit", "JT_REDDIT_APPLY", toggles);
