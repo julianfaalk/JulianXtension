@@ -64,11 +64,25 @@
             <button type="button" class="xdim-theme-dot" data-theme="plum" style="background: hsl(270, 34%, 28%)" title="Plum"></button>
             <button type="button" class="xdim-theme-dot" data-theme="dusk" style="background: hsl(330, 34%, 28%)" title="Dusk"></button>
             <button type="button" class="xdim-theme-dot" data-theme="ember" style="background: hsl(25, 34%, 28%)" title="Ember"></button>
-            <button type="button" class="xdim-theme-dot xdim-custom-dot" data-theme="custom" title="Custom"></button>
+            <button type="button" class="xdim-theme-dot" data-theme="teal" style="background: hsl(175, 30%, 28%)" title="Teal"></button>
+            <button type="button" class="xdim-theme-dot" data-theme="indigo" style="background: hsl(250, 34%, 28%)" title="Indigo"></button>
+            <button type="button" class="xdim-theme-dot" data-theme="rose" style="background: hsl(345, 32%, 28%)" title="Rose"></button>
+            <button type="button" class="xdim-theme-dot xdim-custom-dot" data-theme="custom" title="Eigene Farbe"></button>
           </div>
 
-          <div class="xdim-hue-wrap" id="xDimHueWrap">
-            <input type="range" class="xdim-hue-slider" id="xDimHueSlider" min="0" max="360" value="210" aria-label="Custom hue">
+          <div class="xdim-custom-panel" id="xDimCustomPanel">
+            <label class="xdim-ctrl">
+              <span class="xdim-ctrl-label">Farbton</span>
+              <input type="range" class="xdim-hue-slider" id="xDimHueSlider" min="0" max="360" value="210" aria-label="Farbton">
+            </label>
+            <label class="xdim-ctrl">
+              <span class="xdim-ctrl-label">Sättigung</span>
+              <input type="range" class="xdim-range" id="xDimSatSlider" min="0" max="60" value="34" aria-label="Sättigung">
+            </label>
+            <label class="xdim-ctrl">
+              <span class="xdim-ctrl-label">Helligkeit</span>
+              <input type="range" class="xdim-range" id="xDimDarkSlider" min="7" max="18" value="12" aria-label="Helligkeit">
+            </label>
           </div>
 
           <div class="xdim-email-prompt" id="xEmailPrompt" hidden>
@@ -95,7 +109,6 @@
             </div>
           </div>
 
-          <a class="xdim-donate-btn" href="https://buymeacoffee.com/juan" target="_blank" rel="noreferrer" id="xDonateLink"></a>
           <div class="xdim-footer">
             <a href="https://x.com/juanbuis" target="_blank" rel="noreferrer" id="xCreditLink"></a>
             <span class="xdim-footer-sep">&middot;</span>

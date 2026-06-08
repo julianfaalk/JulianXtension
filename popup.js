@@ -12,6 +12,8 @@ const STORAGE_KEYS = {
   xEnabled: "enabled",
   xTheme: "theme",
   xCustomHue: "customHue",
+  xCustomSat: "customSat",
+  xCustomDark: "customDark",
   xBirdLogo: "birdLogo",
   xLegacyActive: "xthemes.active",
   xHideTrends: "x.hideTrends",
@@ -73,12 +75,13 @@ const els = {
   xDimDot: document.querySelector("#xDimDot"),
   xDimToggle: document.querySelector("#xDimToggle"),
   xDimHueSlider: document.querySelector("#xDimHueSlider"),
-  xDimHueWrap: document.querySelector("#xDimHueWrap"),
+  xDimSatSlider: document.querySelector("#xDimSatSlider"),
+  xDimDarkSlider: document.querySelector("#xDimDarkSlider"),
+  xDimCustomPanel: document.querySelector("#xDimCustomPanel"),
   xThemeDots: document.querySelectorAll(".xdim-theme-dot"),
   xCustomDot: document.querySelector(".xdim-custom-dot"),
   xHint: document.querySelector("#xHint"),
   xExtrasLink: document.querySelector("#xExtrasLink"),
-  xDonateLink: document.querySelector("#xDonateLink"),
   xCreditLink: document.querySelector("#xCreditLink"),
   xShareLink: document.querySelector("#xShareLink"),
   xVersion: document.querySelector("#xVersion"),
@@ -233,6 +236,8 @@ async function initX() {
     [STORAGE_KEYS.xEnabled]: true,
     [STORAGE_KEYS.xTheme]: "dim",
     [STORAGE_KEYS.xCustomHue]: 210,
+    [STORAGE_KEYS.xCustomSat]: 34,
+    [STORAGE_KEYS.xCustomDark]: 12,
     [STORAGE_KEYS.xBirdLogo]: false
   });
 
@@ -240,6 +245,8 @@ async function initX() {
   els.xBirdLogo.checked = Boolean(stored[STORAGE_KEYS.xBirdLogo]);
   els.xDimDot.classList.toggle("active", els.xDimToggle.checked);
   els.xDimHueSlider.value = normalizeHue(stored[STORAGE_KEYS.xCustomHue]);
+  els.xDimSatSlider.value = normalizeSat(stored[STORAGE_KEYS.xCustomSat]);
+  els.xDimDarkSlider.value = normalizeDark(stored[STORAGE_KEYS.xCustomDark]);
   setActiveXDimTheme(normalizeXDimTheme(stored[STORAGE_KEYS.xTheme]));
 
   els.xDimToggle.addEventListener("change", async () => {
@@ -264,25 +271,13 @@ async function initX() {
   }
 
   els.xCustomDot.addEventListener("click", async () => {
-    const hue = normalizeHue(els.xDimHueSlider.value);
-    await chrome.storage.local.set({
-      [STORAGE_KEYS.xTheme]: "custom",
-      [STORAGE_KEYS.xCustomHue]: hue
-    });
-    setActiveXDimTheme("custom");
-    await ensureActiveXScript();
-    setMessage("Custom gespeichert", "success");
+    await saveCustomXDim();
+    setMessage("Eigene Farbe gespeichert", "success");
   });
 
-  els.xDimHueSlider.addEventListener("input", async () => {
-    const hue = normalizeHue(els.xDimHueSlider.value);
-    await chrome.storage.local.set({
-      [STORAGE_KEYS.xTheme]: "custom",
-      [STORAGE_KEYS.xCustomHue]: hue
-    });
-    setActiveXDimTheme("custom");
-    await ensureActiveXScript();
-  });
+  for (const slider of [els.xDimHueSlider, els.xDimSatSlider, els.xDimDarkSlider]) {
+    slider.addEventListener("input", saveCustomXDim);
+  }
 
   els.xBirdLogo.addEventListener("change", async () => {
     await chrome.storage.local.set({ [STORAGE_KEYS.xBirdLogo]: els.xBirdLogo.checked });
@@ -314,14 +309,41 @@ function setActiveXDimTheme(theme) {
     dot.classList.toggle("active", dot.dataset.theme === theme);
   }
 
-  if (theme === "custom") {
-    const hue = normalizeHue(els.xDimHueSlider.value);
-    els.xCustomDot.style.background = `hsl(${hue}, 34%, 28%)`;
-  } else {
-    els.xCustomDot.style.background = "";
-  }
+  updateCustomPreview();
+  els.xDimCustomPanel.classList.toggle("open", theme === "custom");
+}
 
-  els.xDimHueWrap.classList.toggle("open", theme === "custom");
+/* Mirrors the live custom values into the swatch + the saturation / darkness
+   slider tracks so the controls preview the actual resulting colour. */
+function updateCustomPreview() {
+  const hue = normalizeHue(els.xDimHueSlider.value);
+  const sat = normalizeSat(els.xDimSatSlider.value);
+  const dark = normalizeDark(els.xDimDarkSlider.value);
+
+  els.xCustomDot.style.background = `hsl(${hue}, ${sat}%, ${dark + 16}%)`;
+
+  els.xDimSatSlider.style.setProperty(
+    "--track",
+    `linear-gradient(to right, hsl(${hue}, 0%, ${dark + 14}%), hsl(${hue}, 60%, ${dark + 14}%))`
+  );
+  els.xDimDarkSlider.style.setProperty(
+    "--track",
+    `linear-gradient(to right, hsl(${hue}, ${sat}%, 7%), hsl(${hue}, ${sat}%, 22%))`
+  );
+}
+
+async function saveCustomXDim() {
+  const hue = normalizeHue(els.xDimHueSlider.value);
+  const sat = normalizeSat(els.xDimSatSlider.value);
+  const dark = normalizeDark(els.xDimDarkSlider.value);
+  await chrome.storage.local.set({
+    [STORAGE_KEYS.xTheme]: "custom",
+    [STORAGE_KEYS.xCustomHue]: hue,
+    [STORAGE_KEYS.xCustomSat]: sat,
+    [STORAGE_KEYS.xCustomDark]: dark
+  });
+  setActiveXDimTheme("custom");
+  await ensureActiveXScript();
 }
 
 function refreshXHint() {
@@ -334,7 +356,6 @@ function refreshXHint() {
 
 function initXDimLinks() {
   els.xExtrasLink.title = i18nMessage("extras", "Extras");
-  els.xDonateLink.textContent = i18nMessage("donate", "Support X Dim Mode");
   els.xCreditLink.textContent = i18nMessage("credit", "Made by @juanbuis");
   els.xShareLink.textContent = i18nMessage("popupShareLink", "Share");
   els.xShareLink.href = SHARE_URL;
@@ -420,8 +441,20 @@ function i18nMessage(key, fallback = "") {
 }
 
 function normalizeXDimTheme(value) {
-  const allowed = new Set(["dim", "slate", "jade", "plum", "dusk", "ember", "custom"]);
+  const allowed = new Set([
+    "dim", "slate", "jade", "plum", "dusk", "ember", "teal", "indigo", "rose", "custom"
+  ]);
   return allowed.has(value) ? value : "dim";
+}
+
+function normalizeSat(value) {
+  const sat = Number(value);
+  return Number.isFinite(sat) ? Math.min(60, Math.max(0, Math.round(sat))) : 34;
+}
+
+function normalizeDark(value) {
+  const dark = Number(value);
+  return Number.isFinite(dark) ? Math.min(18, Math.max(7, Math.round(dark))) : 12;
 }
 
 function normalizeHue(value) {

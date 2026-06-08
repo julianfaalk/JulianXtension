@@ -21,25 +21,41 @@
     jade: { hue: 150, sat: 34 },
     plum: { hue: 270, sat: 34 },
     dusk: { hue: 330, sat: 34 },
-    ember: { hue: 25, sat: 34 }
+    ember: { hue: 25, sat: 34 },
+    teal: { hue: 175, sat: 30 },
+    indigo: { hue: 250, sat: 34 },
+    rose: { hue: 345, sat: 32 }
   };
+
+  const DEFAULT_CUSTOM_SAT = 34;
+  const DEFAULT_CUSTOM_DARK = 12;
 
   let theme = "dim";
   let customHue = 210;
+  let customSat = DEFAULT_CUSTOM_SAT;
+  let customDark = DEFAULT_CUSTOM_DARK;
   let enabled = false;
   let birdLogo = false;
 
   // Always-Dim adaptive lightness: the dim background is a touch darker when the
   // system is in dark mode, and a touch lighter when the system is in light mode.
-  const BG_L_DARK = 12;
-  const BG_L_LIGHT = 16;
+  // Presets use a fixed base; the custom theme exposes its own darkness, and the
+  // light variant is always a few points lighter than the dark one.
+  const PRESET_BG_L_DARK = 12;
+  const PRESET_LIGHT_OFFSET = 4;
 
   function systemIsDark() {
     return !window.matchMedia || window.matchMedia("(prefers-color-scheme: dark)").matches;
   }
 
+  function getBaseLightness() {
+    const dark = theme === "custom" ? customDark : PRESET_BG_L_DARK;
+    return { dark, light: dark + PRESET_LIGHT_OFFSET };
+  }
+
   function currentBgL() {
-    return systemIsDark() ? BG_L_DARK : BG_L_LIGHT;
+    const { dark, light } = getBaseLightness();
+    return systemIsDark() ? dark : light;
   }
 
   function normalizeTheme(value) {
@@ -51,9 +67,19 @@
     return Number.isFinite(hue) ? Math.min(360, Math.max(0, Math.round(hue))) : 210;
   }
 
+  function normalizeSat(value) {
+    const sat = Number(value);
+    return Number.isFinite(sat) ? Math.min(60, Math.max(0, Math.round(sat))) : DEFAULT_CUSTOM_SAT;
+  }
+
+  function normalizeDark(value) {
+    const dark = Number(value);
+    return Number.isFinite(dark) ? Math.min(18, Math.max(7, Math.round(dark))) : DEFAULT_CUSTOM_DARK;
+  }
+
   function getActiveHueSat() {
     if (theme === "custom") {
-      return { hue: customHue, sat: 34 };
+      return { hue: customHue, sat: customSat };
     }
     return THEMES[theme] || THEMES.dim;
   }
@@ -130,12 +156,13 @@ html.${DIM_CLASS} [data-theme="dark"] {
 
   function buildThemeCSS() {
     const { hue: h, sat: s } = getActiveHueSat();
+    const { dark, light } = getBaseLightness();
     // Always-Dim adaptive: deeper tones on a dark system, lighter on a light one.
     return `
-@media (prefers-color-scheme: dark) {${themeVarsBlock(paletteFromHue(h, s, BG_L_DARK))}
+@media (prefers-color-scheme: dark) {${themeVarsBlock(paletteFromHue(h, s, dark))}
 }
 
-@media (prefers-color-scheme: light) {${themeVarsBlock(paletteFromHue(h, s, BG_L_LIGHT))}
+@media (prefers-color-scheme: light) {${themeVarsBlock(paletteFromHue(h, s, light))}
 }`;
   }
 
@@ -891,9 +918,13 @@ path[data-xdm-bird] { fill: currentColor !important; }
   }
 
   // Init — single storage read, then use cached state
-  chrome.storage.local.get(["enabled", "theme", "customHue", "birdLogo"], (stored) => {
+  chrome.storage.local.get(
+    ["enabled", "theme", "customHue", "customSat", "customDark", "birdLogo"],
+    (stored) => {
     theme = normalizeTheme(stored.theme);
     customHue = normalizeHue(stored.customHue);
+    customSat = normalizeSat(stored.customSat);
+    customDark = normalizeDark(stored.customDark);
     birdLogo = Boolean(stored.birdLogo);
 
     if (stored.enabled === undefined) {
@@ -966,12 +997,18 @@ path[data-xdm-bird] { fill: currentColor !important; }
       syncSettingsButtons(enabled);
     }
 
-    if (changes.theme || changes.customHue) {
+    if (changes.theme || changes.customHue || changes.customSat || changes.customDark) {
       if (changes.theme) {
         theme = normalizeTheme(changes.theme.newValue);
       }
       if (changes.customHue) {
         customHue = normalizeHue(changes.customHue.newValue);
+      }
+      if (changes.customSat) {
+        customSat = normalizeSat(changes.customSat.newValue);
+      }
+      if (changes.customDark) {
+        customDark = normalizeDark(changes.customDark.newValue);
       }
       ensureBaseCSS();
       syncThemeColor();
