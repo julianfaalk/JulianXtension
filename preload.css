@@ -1,2 +1,9 @@
-/* Intentionally empty.
-   X Dim applies its complete theme from xdim.js after storage is available. */
+/* Paints the dim background before xdim.js runs, so a dark-mode page never
+   flashes black on load. Gated on system dark to match the optimistic apply
+   in xdim.js — a light-mode page must not get a navy flash. Uses the default
+   Dim hue; xdim.js re-tints to the user's chosen theme once storage loads. */
+@media (prefers-color-scheme: dark) {
+  html {
+    background-color: hsl(210, 34%, 13%);
+  }
+}
