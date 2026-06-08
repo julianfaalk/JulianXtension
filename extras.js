@@ -6,10 +6,10 @@ document.getElementById("extrasTitle").textContent = chrome.i18n.getMessage("ext
 document.getElementById("birdLabel").textContent = chrome.i18n.getMessage("birdLogo");
 
 // Load state
-chrome.storage.local.get(["birdLogo"], ({ birdLogo }) => {
+chrome.storage.sync.get(["birdLogo"], ({ birdLogo }) => {
   birdToggle.checked = !!birdLogo;
 });
 
 birdToggle.addEventListener("change", () => {
-  chrome.storage.local.set({ birdLogo: birdToggle.checked });
+  chrome.storage.sync.set({ birdLogo: birdToggle.checked });
 });

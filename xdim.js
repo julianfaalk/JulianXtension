@@ -777,12 +777,12 @@ path[data-xdm-bird] { fill: currentColor !important; }
 
     radiogroup.insertBefore(dimBtn, lightsOutBtn);
 
-    chrome.storage.local.get("enabled", (stored) => {
+    chrome.storage.sync.get("enabled", (stored) => {
       syncSettingsButtons(Boolean(stored.enabled));
     });
 
     dimBtn.addEventListener("click", () => {
-      chrome.storage.local.set({ enabled: true });
+      chrome.storage.sync.set({ enabled: true });
       syncSettingsButtons(true);
       activateLightsOut();
     });
@@ -792,7 +792,7 @@ path[data-xdm-bird] { fill: currentColor !important; }
         if (switchingToDim) {
           return;
         }
-        chrome.storage.local.set({ enabled: false });
+        chrome.storage.sync.set({ enabled: false });
         setUnselected(dimBtn);
       });
     }
@@ -924,7 +924,7 @@ path[data-xdm-bird] { fill: currentColor !important; }
   }
 
   // Init — single storage read, then use cached state
-  chrome.storage.local.get(
+  chrome.storage.sync.get(
     ["enabled", "theme", "customHue", "customSat", "customDark", "birdLogo"],
     (stored) => {
     theme = normalizeTheme(stored.theme);
@@ -936,7 +936,7 @@ path[data-xdm-bird] { fill: currentColor !important; }
 
     if (stored.enabled === undefined) {
       enabled = true;
-      chrome.storage.local.set({ enabled: true });
+      chrome.storage.sync.set({ enabled: true });
     } else {
       enabled = Boolean(stored.enabled);
     }
@@ -984,7 +984,7 @@ path[data-xdm-bird] { fill: currentColor !important; }
   });
 
   chrome.storage.onChanged.addListener((changes, areaName) => {
-    if (areaName !== "local") {
+    if (areaName !== "sync") {
       return;
     }
 
@@ -1043,7 +1043,7 @@ path[data-xdm-bird] { fill: currentColor !important; }
 
   // Mirror the saved theme into localStorage (synchronous) so the next page
   // load can paint the user's colours at document_start, before the async
-  // chrome.storage read. chrome.storage.local stays the source of truth.
+  // chrome.storage read. chrome.storage.sync stays the source of truth.
   function cacheTheme() {
     try {
       localStorage.setItem(

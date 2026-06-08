@@ -40,7 +40,7 @@
   });
 
   chrome.storage.onChanged.addListener((changes, areaName) => {
-    if (areaName !== "local") {
+    if (areaName !== "sync") {
       return;
     }
     if (changes[STORAGE_KEYS.hideCopilot]) {
@@ -58,7 +58,7 @@
 
   async function loadStored() {
     try {
-      const stored = await chrome.storage.local.get({
+      const stored = await chrome.storage.sync.get({
         [STORAGE_KEYS.hideCopilot]: false,
         [STORAGE_KEYS.hideSponsors]: false,
         [STORAGE_KEYS.hideFeedWidgets]: false

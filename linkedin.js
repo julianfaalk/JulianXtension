@@ -45,7 +45,7 @@
   });
 
   chrome.storage.onChanged.addListener((changes, areaName) => {
-    if (areaName !== "local") {
+    if (areaName !== "sync") {
       return;
     }
     if (changes[STORAGE_KEYS.hidePromoted]) {
@@ -64,7 +64,7 @@
 
   async function loadStored() {
     try {
-      const stored = await chrome.storage.local.get({
+      const stored = await chrome.storage.sync.get({
         [STORAGE_KEYS.hidePromoted]: false,
         [STORAGE_KEYS.hideNewsRail]: false,
         [STORAGE_KEYS.hidePymk]: false

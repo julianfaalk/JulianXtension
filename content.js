@@ -15,21 +15,27 @@
   const HIDE_KEYS = {
     trends: "x.hideTrends",
     whoToFollow: "x.hideWhoToFollow",
-    grok: "x.hideGrok"
+    grok: "x.hideGrok",
+    ads: "x.hideAds",
+    premium: "x.hidePremium",
+    views: "x.hideViews"
   };
   const HIDE_CLASS = {
     trends: "julians-tweaks-x-hide-trends",
     whoToFollow: "julians-tweaks-x-hide-wtf",
-    grok: "julians-tweaks-x-hide-grok"
+    grok: "julians-tweaks-x-hide-grok",
+    ads: "julians-tweaks-x-hide-ads",
+    premium: "julians-tweaks-x-hide-premium",
+    views: "julians-tweaks-x-hide-views"
   };
 
   // Purge any data left by the retired CSS-variable theme system.
-  chrome.storage.local.remove(LEGACY_THEME_KEY).catch(() => {});
+  chrome.storage.sync.remove(LEGACY_THEME_KEY).catch(() => {});
 
   loadStoredHides();
 
   chrome.storage.onChanged.addListener((changes, areaName) => {
-    if (areaName !== "local") {
+    if (areaName !== "sync") {
       return;
     }
     for (const [name, key] of Object.entries(HIDE_KEYS)) {
@@ -42,7 +48,7 @@
   async function loadStoredHides() {
     try {
       const defaults = Object.fromEntries(Object.values(HIDE_KEYS).map((k) => [k, false]));
-      const stored = await chrome.storage.local.get(defaults);
+      const stored = await chrome.storage.sync.get(defaults);
       ensureHidesStyle();
       for (const [name, key] of Object.entries(HIDE_KEYS)) {
         toggleHide(name, Boolean(stored[key]));
@@ -107,6 +113,28 @@ html.${HIDE_CLASS.grok} nav a:has([aria-label*="Grok" i]),
 html.${HIDE_CLASS.grok} [data-testid="primaryColumn"] [aria-label*="Grok" i],
 html.${HIDE_CLASS.grok} button[aria-label="Grok" i],
 html.${HIDE_CLASS.grok} div:has(> button[aria-label="Grok" i]):not(nav) {
+  display: none !important;
+}
+
+/* ---- Hide promoted / ads in the timeline ---- */
+html.${HIDE_CLASS.ads} [data-testid="primaryColumn"] [data-testid="cellInnerDiv"]:has([data-testid="placementTracking"]):has(article),
+html.${HIDE_CLASS.ads} [data-testid="primaryColumn"] article:has([data-testid="placementTracking"]) {
+  display: none !important;
+}
+
+/* ---- Hide "Subscribe to Premium" upsells (right rail + nav) ---- */
+html.${HIDE_CLASS.premium} [data-testid="sidebarColumn"] aside:has(a[href*="/i/premium"]),
+html.${HIDE_CLASS.premium} [data-testid="sidebarColumn"] section:has(a[href*="/i/premium"]),
+html.${HIDE_CLASS.premium} [data-testid="sidebarColumn"] aside:has(a[href*="/i/verified"]),
+html.${HIDE_CLASS.premium} [data-testid="sidebarColumn"] [aria-label*="Premium" i],
+html.${HIDE_CLASS.premium} nav[role="navigation"] a[href*="/i/premium"],
+html.${HIDE_CLASS.premium} a[href="/i/premium_sign_up"] {
+  display: none !important;
+}
+
+/* ---- Hide view counts (impressions) under tweets ---- */
+html.${HIDE_CLASS.views} [data-testid="primaryColumn"] a[href$="/analytics"],
+html.${HIDE_CLASS.views} [data-testid="primaryColumn"] [aria-label*="View" i][role="link"][href$="/analytics"] {
   display: none !important;
 }
 `;

@@ -50,7 +50,7 @@
   }
 
   chrome.storage.onChanged.addListener((changes, areaName) => {
-    if (areaName !== "local") {
+    if (areaName !== "sync") {
       return;
     }
     if (changes[STORAGE_KEYS.hideShorts]) {
@@ -68,7 +68,7 @@
 
   async function loadStored() {
     try {
-      const stored = await chrome.storage.local.get({
+      const stored = await chrome.storage.sync.get({
         [STORAGE_KEYS.hideShorts]: false,
         [STORAGE_KEYS.hideSidebar]: false,
         [STORAGE_KEYS.hideComments]: false

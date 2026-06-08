@@ -19,6 +19,9 @@ const STORAGE_KEYS = {
   xHideTrends: "x.hideTrends",
   xHideWhoToFollow: "x.hideWhoToFollow",
   xHideGrok: "x.hideGrok",
+  xHideAds: "x.hideAds",
+  xHidePremium: "x.hidePremium",
+  xHideViews: "x.hideViews",
   /* YouTube */
   ytHideShorts: "youtube.hideShorts",
   ytHideSidebar: "youtube.hideSidebar",
@@ -102,6 +105,9 @@ const els = {
   xHideTrends: document.querySelector("#xHideTrends"),
   xHideWhoToFollow: document.querySelector("#xHideWhoToFollow"),
   xHideGrok: document.querySelector("#xHideGrok"),
+  xHideAds: document.querySelector("#xHideAds"),
+  xHidePremium: document.querySelector("#xHidePremium"),
+  xHideViews: document.querySelector("#xHideViews"),
   /* YouTube */
   ytHideShorts: document.querySelector("#ytHideShorts"),
   ytHideSidebar: document.querySelector("#ytHideSidebar"),
@@ -148,7 +154,7 @@ async function init() {
   await initInstagram();
 
   /* Restore last viewed app, but default to whichever the current tab is. */
-  const stored = await chrome.storage.local.get({ [STORAGE_KEYS.lastApp]: null });
+  const stored = await chrome.storage.sync.get({ [STORAGE_KEYS.lastApp]: null });
   const fromHost = appForHost(activeTabHost);
   switchApp(stored[STORAGE_KEYS.lastApp] || fromHost || "x", { persist: false });
 }
@@ -176,7 +182,7 @@ function switchApp(app, { persist = true } = {}) {
   setMessage("");
 
   if (persist) {
-    chrome.storage.local.set({ [STORAGE_KEYS.lastApp]: app });
+    chrome.storage.sync.set({ [STORAGE_KEYS.lastApp]: app });
   }
 }
 
@@ -210,7 +216,7 @@ function wireToggleGroup(app, applyMessageType, toggles) {
 
   for (const t of toggles) {
     t.input.addEventListener("change", async () => {
-      await chrome.storage.local.set({ [t.storageKey]: t.input.checked });
+      await chrome.storage.sync.set({ [t.storageKey]: t.input.checked });
       await broadcast();
       setMessage(t.input.checked ? `${t.label} aus` : `${t.label} sichtbar`, "success");
     });
@@ -219,7 +225,7 @@ function wireToggleGroup(app, applyMessageType, toggles) {
 
 async function loadToggleStates(toggles) {
   const defaults = Object.fromEntries(toggles.map((t) => [t.storageKey, false]));
-  const stored = await chrome.storage.local.get(defaults);
+  const stored = await chrome.storage.sync.get(defaults);
   for (const t of toggles) {
     t.input.checked = Boolean(stored[t.storageKey]);
   }
@@ -228,11 +234,11 @@ async function loadToggleStates(toggles) {
 /* ---- X Dim Mode ---- */
 
 async function initX() {
-  await chrome.storage.local.remove(STORAGE_KEYS.xLegacyActive);
+  await chrome.storage.sync.remove(STORAGE_KEYS.xLegacyActive);
   initXDimLinks();
   initXDimPrompts();
 
-  const stored = await chrome.storage.local.get({
+  const stored = await chrome.storage.sync.get({
     [STORAGE_KEYS.xEnabled]: true,
     [STORAGE_KEYS.xTheme]: "dim",
     [STORAGE_KEYS.xCustomHue]: 210,
@@ -251,7 +257,7 @@ async function initX() {
 
   els.xDimToggle.addEventListener("change", async () => {
     const enabled = els.xDimToggle.checked;
-    await chrome.storage.local.set({ [STORAGE_KEYS.xEnabled]: enabled });
+    await chrome.storage.sync.set({ [STORAGE_KEYS.xEnabled]: enabled });
     els.xDimDot.classList.toggle("active", enabled);
     await ensureActiveXScript();
     setMessage(enabled ? "Dim aktiviert" : "Dim deaktiviert", "success");
@@ -263,7 +269,7 @@ async function initX() {
     }
     dot.addEventListener("click", async () => {
       const theme = normalizeXDimTheme(dot.dataset.theme);
-      await chrome.storage.local.set({ [STORAGE_KEYS.xTheme]: theme });
+      await chrome.storage.sync.set({ [STORAGE_KEYS.xTheme]: theme });
       setActiveXDimTheme(theme);
       await ensureActiveXScript();
       setMessage(`${dot.title || theme} gespeichert`, "success");
@@ -271,16 +277,19 @@ async function initX() {
   }
 
   els.xCustomDot.addEventListener("click", async () => {
-    await saveCustomXDim();
+    setActiveXDimTheme("custom");
+    await persistCustomXDim();
     setMessage("Eigene Farbe gespeichert", "success");
   });
 
+  /* Dragging fires many input events; chrome.storage.sync is rate-limited
+     (~120 writes/min), so preview live in the popup but debounce the write. */
   for (const slider of [els.xDimHueSlider, els.xDimSatSlider, els.xDimDarkSlider]) {
-    slider.addEventListener("input", saveCustomXDim);
+    slider.addEventListener("input", previewCustomXDim);
   }
 
   els.xBirdLogo.addEventListener("change", async () => {
-    await chrome.storage.local.set({ [STORAGE_KEYS.xBirdLogo]: els.xBirdLogo.checked });
+    await chrome.storage.sync.set({ [STORAGE_KEYS.xBirdLogo]: els.xBirdLogo.checked });
     await ensureActiveXScript();
     setMessage(els.xBirdLogo.checked ? "Vogel-Logo aktiviert" : "X-Logo sichtbar", "success");
   });
@@ -290,7 +299,10 @@ async function initX() {
   const xToggles = [
     { input: els.xHideTrends,      storageKey: STORAGE_KEYS.xHideTrends,      settingsKey: "hideTrends",      label: "Trends" },
     { input: els.xHideWhoToFollow, storageKey: STORAGE_KEYS.xHideWhoToFollow, settingsKey: "hideWhoToFollow", label: "Who to follow" },
-    { input: els.xHideGrok,        storageKey: STORAGE_KEYS.xHideGrok,        settingsKey: "hideGrok",        label: "Grok" }
+    { input: els.xHideGrok,        storageKey: STORAGE_KEYS.xHideGrok,        settingsKey: "hideGrok",        label: "Grok" },
+    { input: els.xHideAds,         storageKey: STORAGE_KEYS.xHideAds,         settingsKey: "hideAds",         label: "Werbung" },
+    { input: els.xHidePremium,     storageKey: STORAGE_KEYS.xHidePremium,     settingsKey: "hidePremium",     label: "Premium-Werbung" },
+    { input: els.xHideViews,       storageKey: STORAGE_KEYS.xHideViews,       settingsKey: "hideViews",       label: "Aufrufzahlen" }
   ];
   await loadToggleStates(xToggles);
 
@@ -298,7 +310,7 @@ async function initX() {
      chrome.storage.onChanged directly for these keys. */
   for (const t of xToggles) {
     t.input.addEventListener("change", async () => {
-      await chrome.storage.local.set({ [t.storageKey]: t.input.checked });
+      await chrome.storage.sync.set({ [t.storageKey]: t.input.checked });
       setMessage(t.input.checked ? `${t.label} aus` : `${t.label} sichtbar`, "success");
     });
   }
@@ -332,17 +344,26 @@ function updateCustomPreview() {
   );
 }
 
-async function saveCustomXDim() {
+let customSaveTimer = null;
+
+/* Instant in-popup preview (swatch + slider tracks), debounced persist. */
+function previewCustomXDim() {
+  setActiveXDimTheme("custom");
+  window.clearTimeout(customSaveTimer);
+  customSaveTimer = window.setTimeout(persistCustomXDim, 250);
+}
+
+async function persistCustomXDim() {
+  window.clearTimeout(customSaveTimer);
   const hue = normalizeHue(els.xDimHueSlider.value);
   const sat = normalizeSat(els.xDimSatSlider.value);
   const dark = normalizeDark(els.xDimDarkSlider.value);
-  await chrome.storage.local.set({
+  await chrome.storage.sync.set({
     [STORAGE_KEYS.xTheme]: "custom",
     [STORAGE_KEYS.xCustomHue]: hue,
     [STORAGE_KEYS.xCustomSat]: sat,
     [STORAGE_KEYS.xCustomDark]: dark
   });
-  setActiveXDimTheme("custom");
   await ensureActiveXScript();
 }
 
@@ -369,7 +390,7 @@ function initXDimLinks() {
 }
 
 async function initXDimPrompts() {
-  const stored = await chrome.storage.local.get({
+  const stored = await chrome.storage.sync.get({
     installTimestamp: null,
     emailPromptDismissed: false,
     engageDismissed: false
@@ -386,7 +407,7 @@ async function initXDimPrompts() {
   els.xEngageRate.href = RATE_URL;
 
   els.xEmailPromptClose.addEventListener("click", () => {
-    chrome.storage.local.set({ emailPromptDismissed: true });
+    chrome.storage.sync.set({ emailPromptDismissed: true });
     els.xEmailPrompt.hidden = true;
   });
 
@@ -405,7 +426,7 @@ async function initXDimPrompts() {
       els.xEmailPromptForm.hidden = true;
       els.xEmailPromptSpam.hidden = true;
       els.xEmailPromptSuccess.hidden = false;
-      chrome.storage.local.set({ emailPromptDismissed: true });
+      chrome.storage.sync.set({ emailPromptDismissed: true });
     } catch (_error) {
       els.xEmailPromptBtn.disabled = false;
       els.xEmailPromptBtn.textContent = i18nMessage("subscribe", "Subscribe");
@@ -413,7 +434,7 @@ async function initXDimPrompts() {
   });
 
   const dismissEngage = () => {
-    chrome.storage.local.set({ engageDismissed: true });
+    chrome.storage.sync.set({ engageDismissed: true });
     els.xEngagePrompt.hidden = true;
   };
   els.xEngageClose.addEventListener("click", dismissEngage);

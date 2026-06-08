@@ -42,7 +42,7 @@
   });
 
   chrome.storage.onChanged.addListener((changes, areaName) => {
-    if (areaName !== "local") {
+    if (areaName !== "sync") {
       return;
     }
     if (changes[STORAGE_KEYS.hideAiOverview]) {
@@ -63,7 +63,7 @@
 
   async function loadStored() {
     try {
-      const stored = await chrome.storage.local.get({
+      const stored = await chrome.storage.sync.get({
         [STORAGE_KEYS.hideAiOverview]: false,
         [STORAGE_KEYS.hideSponsored]: false,
         [STORAGE_KEYS.hidePeopleAsk]: false,
