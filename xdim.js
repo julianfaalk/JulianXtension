@@ -101,9 +101,12 @@ html.${DIM_CLASS} {
   --xdm-border: ${p.border};
 }
 
-/* Override X's own Lights Out theme variables (1:1 with the store version) */
+/* Override X's own Lights Out theme variables. CRITICAL: keep --color at X's
+   bright foreground. Current X draws primary text (names, headings, nav, much
+   body text) via var(--color); the store dims it, which washes the whole page
+   out on today's X. Dim retints backgrounds/borders only — never the text. */
 html.${DIM_CLASS} body.LightsOut {
-  --color: var(--xdm-text);
+  --color: rgb(231, 233, 234);
   --border: ${p.borderRaw};
   --input: ${p.borderRaw};
   --border-color: var(--xdm-border);
