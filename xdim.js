@@ -236,8 +236,35 @@ html.${DIM_CLASS} .xdm-dimmed-elevated .jf-element:empty {
 }
 `;
 
+  // Compose surface (modal + inline composer). X paints the editor and
+  // toolbar on a translucent / backdrop-blurred panel; layered over the
+  // dimmed-but-colourful timeline that bleeds through as a muddy purple tint.
+  // Force the whole compose surface to one flat, opaque dim background and
+  // strip the blur so nothing shows through. Scoped to compose testids so it
+  // can't leak onto unrelated surfaces.
+  const COMPOSE_CSS = `
+html.${DIM_CLASS} [role="dialog"]:has([data-testid="tweetTextarea_0"]),
+html.${DIM_CLASS} [role="dialog"]:has([data-testid="tweetTextarea_0"]) > div,
+html.${DIM_CLASS} [data-testid="tweetTextareaRootContainer"],
+html.${DIM_CLASS} [data-testid="tweetTextareaRootContainer"] > div,
+html.${DIM_CLASS} [data-testid="tweetTextarea_0RichTextInputContainer"],
+html.${DIM_CLASS} [data-testid="tweetTextarea_0RichTextInputContainer"] > div,
+html.${DIM_CLASS} [data-testid="tweetTextarea_0"],
+html.${DIM_CLASS} [data-testid="toolBar"],
+html.${DIM_CLASS} [data-testid="toolBar"] > div,
+html.${DIM_CLASS} .DraftEditor-root,
+html.${DIM_CLASS} .DraftEditor-editorContainer,
+html.${DIM_CLASS} .public-DraftEditor-content {
+  background-color: var(--xdm-bg) !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+`;
+
   function buildFullCSS() {
-    return buildThemeCSS() + STATIC_CSS;
+    return buildThemeCSS() + STATIC_CSS + COMPOSE_CSS;
   }
 
   // Always update the style element — prevents stale CSS after extension reload
