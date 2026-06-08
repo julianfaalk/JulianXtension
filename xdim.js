@@ -10,6 +10,7 @@
   const DIM_CLASS = "x-dim-active";
   const BIRD_CSS_ID = "x-dim-bird-css";
   const LOCAL_CACHE_KEY = "__xdm_enabled";
+  const THEME_CACHE_KEY = "__xdm_theme";
   const BIRD_PATH =
     "M23.643 4.937c-.835.37-1.732.62-2.675.733.962-.576 1.7-1.49 2.048-2.578-.9.534-1.897.922-2.958 1.13-.85-.904-2.06-1.47-3.4-1.47-2.572 0-4.658 2.086-4.658 4.66 0 .364.042.718.12 1.06-3.873-.195-7.304-2.05-9.602-4.868-.4.69-.63 1.49-.63 2.342 0 1.616.823 3.043 2.072 3.878-.764-.025-1.482-.234-2.11-.583v.06c0 2.257 1.605 4.14 3.737 4.568-.392.106-.803.162-1.227.162-.3 0-.593-.028-.877-.082.593 1.85 2.313 3.198 4.352 3.234-1.595 1.25-3.604 1.995-5.786 1.995-.376 0-.747-.022-1.112-.065 2.062 1.323 4.51 2.093 7.14 2.093 8.57 0 13.255-7.098 13.255-13.254 0-.2-.005-.402-.014-.602.91-.658 1.7-1.477 2.323-2.41z";
   const PING_TYPES = new Set(["XDM_PING", "XTHEMES_PING"]);
@@ -348,6 +349,11 @@ html.${DIM_CLASS} .public-DraftEditor-content {
       style.textContent = css;
     }
   }
+
+  // Restore the last-saved theme synchronously from localStorage so the very
+  // first CSS at document_start already uses the user's colours — no flash of
+  // the default dim before the async chrome.storage read returns.
+  loadThemeCache();
 
   // Inject CSS immediately at document_start — don't wait for async storage read.
   // Rules are gated by html.x-dim-active so they're inert until the class is added.
@@ -926,6 +932,7 @@ path[data-xdm-bird] { fill: currentColor !important; }
     customSat = normalizeSat(stored.customSat);
     customDark = normalizeDark(stored.customDark);
     birdLogo = Boolean(stored.birdLogo);
+    cacheTheme();
 
     if (stored.enabled === undefined) {
       enabled = true;
@@ -1010,6 +1017,7 @@ path[data-xdm-bird] { fill: currentColor !important; }
       if (changes.customDark) {
         customDark = normalizeDark(changes.customDark.newValue);
       }
+      cacheTheme();
       ensureBaseCSS();
       syncThemeColor();
       updateSettingsButtonColor();
@@ -1028,6 +1036,36 @@ path[data-xdm-bird] { fill: currentColor !important; }
   function cacheEnabled(value) {
     try {
       localStorage.setItem(LOCAL_CACHE_KEY, value ? "1" : "0");
+    } catch (_error) {
+      /* no-op */
+    }
+  }
+
+  // Mirror the saved theme into localStorage (synchronous) so the next page
+  // load can paint the user's colours at document_start, before the async
+  // chrome.storage read. chrome.storage.local stays the source of truth.
+  function cacheTheme() {
+    try {
+      localStorage.setItem(
+        THEME_CACHE_KEY,
+        JSON.stringify({ theme, customHue, customSat, customDark })
+      );
+    } catch (_error) {
+      /* no-op */
+    }
+  }
+
+  function loadThemeCache() {
+    try {
+      const raw = localStorage.getItem(THEME_CACHE_KEY);
+      if (!raw) {
+        return;
+      }
+      const cached = JSON.parse(raw);
+      theme = normalizeTheme(cached.theme);
+      customHue = normalizeHue(cached.customHue);
+      customSat = normalizeSat(cached.customSat);
+      customDark = normalizeDark(cached.customDark);
     } catch (_error) {
       /* no-op */
     }
