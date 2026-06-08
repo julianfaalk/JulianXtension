@@ -81,12 +81,9 @@ html.${DIM_CLASS} {
   --xdm-border: ${p.border};
 }
 
-/* Override X's own Lights Out theme variables. Dim is a BACKGROUND retint:
-   keep X's bright primary foreground (--color) intact — muting it here washes
-   out every name/heading/nav label that reads var(--color) and is what made
-   the page look muddy. Only the borders move to the dim palette. */
+/* Override X's own Lights Out theme variables (1:1 with the store version) */
 html.${DIM_CLASS} body.LightsOut {
-  --color: rgb(231, 233, 234);
+  --color: var(--xdm-text);
   --border: ${p.borderRaw};
   --input: ${p.borderRaw};
   --border-color: var(--xdm-border);
@@ -236,6 +233,13 @@ html.${DIM_CLASS} .jf-element:has(> span:only-child > svg:only-child) {
 html.${DIM_CLASS} .xdm-dimmed-elevated .jf-element:empty {
   background-color: var(--xdm-border) !important;
   border-color: var(--xdm-border) !important;
+}
+
+/* Media editor crop selection — the crop rectangle has .r-1niwhzg (black bg)
+   but other classes override it to transparent. Our !important rule would
+   otherwise paint a solid dim block over the image, so force it transparent. */
+html.${DIM_CLASS} .r-1niwhzg.r-633pao {
+  background-color: transparent !important;
 }
 `;
 
