@@ -1,9 +1,9 @@
-/* Paints the dim background before xdim.js runs, so a dark-mode page never
-   flashes black on load. Gated on system dark to match the optimistic apply
-   in xdim.js — a light-mode page must not get a navy flash. Uses the default
-   Dim hue; xdim.js re-tints to the user's chosen theme once storage loads. */
+/* Paints the dim background before xdim.js runs so a dark page never flashes
+   black on load. Dark-only on purpose: on a genuinely light page we must not
+   flash navy. Uses the default Dim hue at the dark-mode lightness; xdim.js
+   re-tints to the user's theme + adaptive lightness once storage loads. */
 @media (prefers-color-scheme: dark) {
   html {
-    background-color: hsl(210, 34%, 13%);
+    background-color: hsl(210, 34%, 12%);
   }
 }

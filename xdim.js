@@ -29,6 +29,19 @@
   let enabled = false;
   let birdLogo = false;
 
+  // Always-Dim adaptive lightness: the dim background is a touch darker when the
+  // system is in dark mode, and a touch lighter when the system is in light mode.
+  const BG_L_DARK = 12;
+  const BG_L_LIGHT = 16;
+
+  function systemIsDark() {
+    return !window.matchMedia || window.matchMedia("(prefers-color-scheme: dark)").matches;
+  }
+
+  function currentBgL() {
+    return systemIsDark() ? BG_L_DARK : BG_L_LIGHT;
+  }
+
   function normalizeTheme(value) {
     return value === "custom" || Object.hasOwn(THEMES, value) ? value : "dim";
   }
@@ -45,18 +58,24 @@
     return THEMES[theme] || THEMES.dim;
   }
 
-  function paletteFromHue(h, s) {
+  // Derives the full palette from a hue/sat and a base background lightness.
+  // hover/elevated/border track the bg lightness with the same offsets the
+  // store uses at bgL=13 (→ 16/20/26), so bgL=13 reproduces it exactly.
+  function paletteFromHue(h, s, bgL) {
     const bSat = Math.round(s * 0.47);
+    const hoverL = bgL + 3;
+    const elevL = bgL + 7;
+    const borderL = bgL + 13;
     return {
-      bg: `hsl(${h}, ${s}%, 13%)`,
-      bgHover: `hsl(${h}, ${Math.round(s * 0.74)}%, 16%)`,
-      bgElevated: `hsl(${h}, ${Math.round(s * 0.71)}%, 20%)`,
-      backdrop: `hsla(${h}, ${s}%, 13%, 0.85)`,
+      bg: `hsl(${h}, ${s}%, ${bgL}%)`,
+      bgHover: `hsl(${h}, ${Math.round(s * 0.74)}%, ${hoverL}%)`,
+      bgElevated: `hsl(${h}, ${Math.round(s * 0.71)}%, ${elevL}%)`,
+      backdrop: `hsla(${h}, ${s}%, ${bgL}%, 0.85)`,
       text: `hsl(${h}, ${Math.round(s * 0.32)}%, 60%)`,
-      border: `hsl(${h}, ${bSat}%, 26%)`,
+      border: `hsl(${h}, ${bSat}%, ${borderL}%)`,
       // Raw HSL components for X's CSS variable format (space-separated, no wrapper)
-      bgRaw: `${h} ${s}% 13%`,
-      borderRaw: `${h} ${bSat}% 26%`,
+      bgRaw: `${h} ${s}% ${bgL}%`,
+      borderRaw: `${h} ${bSat}% ${borderL}%`,
       mutedRaw: `${h} ${bSat}% 55%`,
       grayRaw60: `${h} ${bSat}% 60%`,
       grayRaw50: `${h} ${bSat}% 50%`
@@ -68,9 +87,10 @@
   // X's own design tokens. We deliberately do NOT re-theme X's light mode —
   // dim only layers on top of Lights Out, which keeps the result clean.
 
-  function buildThemeCSS() {
-    const { hue: h, sat: s } = getActiveHueSat();
-    const p = paletteFromHue(h, s);
+  // The CSS-variable definitions for one palette. STATIC_CSS / COMPOSE_CSS read
+  // these vars, so wrapping two of these in prefers-color-scheme media queries
+  // is all it takes to make the whole theme adapt light/dark.
+  function themeVarsBlock(p) {
     return `
 html.${DIM_CLASS} {
   --xdm-bg: ${p.bg};
@@ -102,6 +122,17 @@ html.${DIM_CLASS} [data-theme="dark"] {
   --color-gray-100: ${p.borderRaw};
   --color-gray-700: ${p.grayRaw60};
   --color-gray-800: ${p.grayRaw50};
+}`;
+  }
+
+  function buildThemeCSS() {
+    const { hue: h, sat: s } = getActiveHueSat();
+    // Always-Dim adaptive: deeper tones on a dark system, lighter on a light one.
+    return `
+@media (prefers-color-scheme: dark) {${themeVarsBlock(paletteFromHue(h, s, BG_L_DARK))}
+}
+
+@media (prefers-color-scheme: light) {${themeVarsBlock(paletteFromHue(h, s, BG_L_LIGHT))}
 }`;
   }
 
@@ -302,6 +333,22 @@ html.${DIM_CLASS} .public-DraftEditor-content {
     document.documentElement.classList.add(DIM_CLASS);
   }
 
+  // "Always Dim": nudge X into its Lights Out (dark) base via the night_mode
+  // cookie so the dim recolor has a dark surface to sit on even when the system
+  // is in light mode. Best-effort and set as early as possible so X reads it on
+  // load; if X ignores it the body-class observer keeps dim suspended on a
+  // genuinely light page, so there's never light-on-dark unreadable text.
+  function nudgeLightsOut() {
+    try {
+      if (localStorage.getItem(LOCAL_CACHE_KEY) !== "0") {
+        document.cookie = "night_mode=2; path=/; max-age=31536000; samesite=lax";
+      }
+    } catch (_error) {
+      /* httpOnly / blocked — ignore */
+    }
+  }
+  nudgeLightsOut();
+
   // ── PWA theme-color sync ──────────────────────────────────────────
   // Updates <meta name="theme-color"> so the PWA title bar matches the dim bg.
 
@@ -322,7 +369,7 @@ html.${DIM_CLASS} .public-DraftEditor-content {
       originalThemeColor = meta.getAttribute("content");
     }
     const { hue, sat } = getActiveHueSat();
-    const desired = `hsl(${hue}, ${sat}%, 13%)`;
+    const desired = `hsl(${hue}, ${sat}%, ${currentBgL()}%)`;
     if (meta.getAttribute("content") !== desired) {
       meta.setAttribute("content", desired);
     }
@@ -717,7 +764,7 @@ path[data-xdm-bird] { fill: currentColor !important; }
 
   function updateButtonColor(btnEl) {
     const { hue, sat } = getActiveHueSat();
-    btnEl.style.backgroundColor = `hsl(${hue}, ${sat}%, 13%)`;
+    btnEl.style.backgroundColor = `hsl(${hue}, ${sat}%, ${currentBgL()}%)`;
   }
 
   function updateSettingsButtonColor() {
@@ -905,6 +952,7 @@ path[data-xdm-bird] { fill: currentColor !important; }
       cacheEnabled(enabled);
       if (enabled) {
         suspendedForLight = false;
+        nudgeLightsOut();
         startBodyObserver();
         applyDim();
         activateLightsOut();
