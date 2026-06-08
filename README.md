@@ -6,7 +6,7 @@ A Manifest V3 Chrome extension that bundles **7 per-site annoyance-killers** und
 
 | App | Tweaks |
 |---|---|
-| **X** | 12 theme presets · Hide Trends · Hide Who-to-Follow · Hide Grok |
+| **X** | X Dim Mode (6 dim themes + custom hue) · Classic bird logo · Hide Trends · Hide Who-to-Follow · Hide Grok |
 | **YouTube** | Hide Shorts · Hide Watch-Page Sidebar · Hide Comments |
 | **Google** | Hide AI-Overviews · Hide Sponsored · Hide People-Also-Ask · Hide Related Searches |
 | **LinkedIn** | Hide Promoted · Hide News-Rail · Hide People-You-May-Know |
@@ -36,7 +36,9 @@ All settings persist in `chrome.storage.local`. Toggling propagates to every ope
 manifest.json     — Hosts + content scripts per app
 popup.html / .css — Tabbed UI (4-col × 2-row grid of apps)
 popup.js          — Tab routing, per-app init(), wireToggleGroup() helper
-content.js        — X.com theme application + X hide-toggles
+preload.css       — Paints the dim bg at document_start (no flash of black)
+xdim.js           — X Dim Mode: recolors X's native Lights Out theme to navy
+content.js        — X hide-toggles (trends, who-to-follow, Grok)
 youtube.js        — YouTube hide-toggles
 google.js         — Google hide-toggles
 linkedin.js       — LinkedIn hide-toggles (incl. MutationObserver for promoted detection)
