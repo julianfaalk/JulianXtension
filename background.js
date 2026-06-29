@@ -80,6 +80,14 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     // Skip pinned tabs
     if (tab.pinned) continue;
 
+    // Skip tabs that are currently playing sound (music/video). Refresh their
+    // activity stamp so the inactivity clock only starts once audio stops —
+    // otherwise a tab would be eligible to close the instant playback ends.
+    if (tab.audible) {
+      markActive(tab.id);
+      continue;
+    }
+
     // Skip if it's the last tab in its window
     if (windowTabCounts[tab.windowId] <= 1) continue;
 
