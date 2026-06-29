@@ -18,8 +18,8 @@
 }
 
 body {
-  width: 380px;
-  max-height: 620px;
+  width: 560px;
+  max-height: 540px;
   margin: 0;
   overflow: hidden auto;
   background: var(--bg);
@@ -57,7 +57,7 @@ body {
 
 .tabs {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 3px;
   padding: 3px;
   border: 1px solid var(--line);
