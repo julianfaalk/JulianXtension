@@ -199,8 +199,10 @@ function switchApp(app, { persist = true } = {}) {
   if (app === "jstoggle" && typeof loadJsToggle === "function") loadJsToggle();
   if (app === "nocookie" && typeof loadNoCookie === "function") loadNoCookie();
   if (app === "livecss" && typeof loadLiveCSS === "function") loadLiveCSS();
-  if (app === "unhook" && typeof loadUnhook === "function") loadUnhook();
-  if (app === "xunhook" && typeof loadXUnhook === "function") loadXUnhook();
+  // X Unhook + YT Unhook were merged into the X / YouTube panes, so their
+  // loaders now fire when those tabs open.
+  if (app === "youtube" && typeof loadUnhook === "function") loadUnhook();
+  if (app === "x" && typeof loadXUnhook === "function") loadXUnhook();
   if (app === "jsonformat" && typeof loadJsonFormat === "function") loadJsonFormat();
   if (app === "music" && typeof loadMusicHistory === "function") { loadMusicHistory(); loadAcrFields(); }
 
@@ -1299,6 +1301,7 @@ async function loadUnhook() {
 }
 
 function updateUnhookUI(on) {
+  if (!unhookStatus) return;
   unhookStatus.textContent = on ? "ON" : "OFF";
   unhookStatus.className = "sl-status " + (on ? "on" : "off");
 }
@@ -1329,6 +1332,7 @@ async function loadXUnhook() {
 }
 
 function updateXUnhookUI(on) {
+  if (!xunhookStatus) return;
   xunhookStatus.textContent = on ? "ON" : "OFF";
   xunhookStatus.className = "sl-status " + (on ? "on" : "off");
 }

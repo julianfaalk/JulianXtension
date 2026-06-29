@@ -112,6 +112,23 @@ body {
   color: var(--accent);
 }
 
+/* Brand-logo icons (X, YouTube, Google, LinkedIn, Reddit, GitHub, Instagram) */
+.tab-icon-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 18px;
+}
+.tab-icon-brand svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+/* Multi-colour brand logos keep full colour even when their tab is inactive */
+.tab-icon-brand {
+  opacity: 1;
+}
+
 .tab-label {
   font-size: 10px;
   font-weight: 700;
