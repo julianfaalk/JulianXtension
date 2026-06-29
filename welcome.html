@@ -271,6 +271,90 @@
       text-decoration: none;
     }
     .footer a:hover { text-decoration: underline; }
+
+    /* Maker card */
+    .maker {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 28px;
+      padding: 18px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(29,155,240,0.10), rgba(120,86,255,0.12));
+      border: 1px solid #38444D;
+    }
+    .maker-avatar {
+      flex-shrink: 0;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 17px;
+      color: #fff;
+      letter-spacing: 0.5px;
+      background: linear-gradient(135deg, #1D9BF0, #7856FF);
+      background-size: 200% 200%;
+      animation: gradientShift 6s ease infinite;
+    }
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .maker-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: #E7E9EA;
+      margin-bottom: 3px;
+    }
+    .wave {
+      display: inline-block;
+      animation: wave 2.2s ease-in-out infinite;
+      transform-origin: 70% 70%;
+    }
+    @keyframes wave {
+      0%, 60%, 100% { transform: rotate(0deg); }
+      10% { transform: rotate(14deg); }
+      20% { transform: rotate(-8deg); }
+      30% { transform: rotate(14deg); }
+      40% { transform: rotate(-4deg); }
+      50% { transform: rotate(10deg); }
+    }
+    .maker-tag {
+      font-size: 13px;
+      color: #8B98A5;
+      line-height: 1.45;
+    }
+    .maker-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      height: 38px;
+      padding: 0 16px;
+      border-radius: 19px;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: transform 0.15s, opacity 0.2s, border-color 0.2s, color 0.2s;
+    }
+    .chip:hover { transform: translateY(-1px); }
+    .chip-x { background: #fff; color: #000; }
+    .chip-x:hover { opacity: 0.88; }
+    .chip-gh {
+      background: transparent;
+      color: #E7E9EA;
+      border: 1px solid #38444D;
+    }
+    .chip-gh:hover { border-color: #1D9BF0; color: #1D9BF0; }
   </style>
 </head>
 <body>
@@ -301,8 +385,20 @@
       <p class="email-error" id="emailError"></p>
     </div>
 
+    <div class="maker">
+      <div class="maker-avatar">JF</div>
+      <div class="maker-text">
+        <p class="maker-name">Built by Julian Falk <span class="wave">👋</span></p>
+        <p class="maker-tag">I build little tools that make the web less annoying. JulianXtension is free &amp; open-source — fork it, remix it, make it yours.</p>
+      </div>
+    </div>
+    <div class="maker-links">
+      <a class="chip chip-x" href="https://x.com/julianfaalk" target="_blank" rel="noopener">𝕏&nbsp; Follow @julianfaalk</a>
+      <a class="chip chip-gh" href="https://github.com/julianfaalk/JulianXtension" target="_blank" rel="noopener">★&nbsp; Star on GitHub</a>
+    </div>
+
   </div>
-  <p class="footer">Made by <a href="https://x.com/jlnfalk" target="_blank">@jlnfalk</a> — <a href="https://x.com/jlnfalk" target="_blank">follow me on X for updates</a> :)</p>
+  <p class="footer">Made with ☕ &amp; a grudge against ads by <a href="https://x.com/julianfaalk" target="_blank" rel="noopener">@julianfaalk</a></p>
 
   <script src="welcome.js"></script>
 </body>

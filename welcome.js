@@ -59,14 +59,6 @@ tryBtn.className = "btn-primary";
 tryBtn.textContent = msg("tryNow");
 actions.appendChild(tryBtn);
 
-const donateBtn = document.createElement("a");
-donateBtn.href = "https://buymeacoffee.com/juan";
-donateBtn.target = "_blank";
-donateBtn.className = "btn-donate";
-donateBtn.textContent = msg("donate");
-actions.appendChild(donateBtn);
-
-
 // Email section copy
 const emailLabel = document.getElementById("emailLabel");
 
