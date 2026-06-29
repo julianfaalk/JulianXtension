@@ -5,6 +5,379 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Julians Tweaks</title>
     <link rel="stylesheet" href="popup.css">
+    <style>
+      /* ── superlevels feature pages (scoped under .sl-page so they
+            never restyle Julian's X-Dim / Site-Tweaks / nav / header) ── */
+      .sl-page { display: none; }
+      .sl-page.is-active { display: block; }
+      .sl-body { padding: 2px 0; }
+
+      .sl-page .sl-h2 {
+        font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+        color: #888; margin-bottom: 8px; font-weight: 700;
+      }
+
+      /* Tab Cleaner */
+      .sl-page .toggle-row {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 12px; padding: 8px 12px;
+        background: #16213e; border-radius: 8px;
+      }
+      .sl-page .toggle-row label { font-size: 13px; font-weight: 500; }
+      .sl-page .sl-switch { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+      .sl-page .sl-switch input { opacity: 0; width: 0; height: 0; }
+      .sl-page .sl-slider {
+        position: absolute; inset: 0; background: #444; border-radius: 22px;
+        cursor: pointer; transition: background 0.2s;
+      }
+      .sl-page .sl-slider::before {
+        content: ''; position: absolute;
+        width: 16px; height: 16px; left: 3px; bottom: 3px;
+        background: #fff; border-radius: 50%; transition: transform 0.2s;
+      }
+      .sl-page .sl-switch input:checked + .sl-slider { background: #e94560; }
+      .sl-page .sl-switch input:checked + .sl-slider::before { transform: translateX(18px); }
+      .sl-page .timeout-row {
+        display: flex; align-items: center; gap: 8px;
+        margin-bottom: 14px; padding: 8px 12px;
+        background: #16213e; border-radius: 8px; font-size: 13px;
+      }
+      .sl-page .timeout-row input {
+        width: 56px; padding: 4px 6px; border: 1px solid #333; border-radius: 6px;
+        background: #0f3460; color: #fff; font-size: 13px; text-align: center;
+      }
+      .sl-page .timeout-row input:focus { outline: none; border-color: #e94560; }
+      .sl-page .add-row { display: flex; gap: 6px; margin-bottom: 10px; }
+      .sl-page .add-row input {
+        flex: 1; padding: 7px 10px; border: 1px solid #333; border-radius: 6px;
+        background: #0f3460; color: #fff; font-size: 13px;
+      }
+      .sl-page .add-row input::placeholder { color: #666; }
+      .sl-page .add-row input:focus { outline: none; border-color: #e94560; }
+      .sl-page .add-row button {
+        padding: 7px 14px; background: #e94560; color: #fff; border: none;
+        border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;
+      }
+      .sl-page .add-row button:hover { background: #c73650; }
+      .sl-page .exc-list .item {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 6px 10px; background: #16213e; border-radius: 6px;
+        margin-bottom: 4px; font-size: 13px;
+      }
+      .sl-page .exc-list .item span { word-break: break-all; }
+      .sl-page .exc-list .item button {
+        background: none; border: none; color: #e94560; font-size: 16px;
+        cursor: pointer; padding: 0 4px; line-height: 1;
+      }
+      .sl-page .exc-list .item button:hover { color: #ff6b81; }
+      .sl-page .closed-section { margin-top: 14px; }
+      .sl-page .closed-header {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 6px;
+      }
+      .sl-page .closed-header button {
+        background: none; border: none; color: #e94560; font-size: 11px; cursor: pointer;
+      }
+      .sl-page .closed-item {
+        display: flex; align-items: center; gap: 8px; padding: 7px 10px;
+        background: #16213e; border-radius: 6px; margin-bottom: 4px;
+        cursor: pointer; transition: background 0.15s;
+      }
+      .sl-page .closed-item:hover { background: #1b2a4a; }
+      .sl-page .closed-item .favicon {
+        width: 16px; height: 16px; border-radius: 2px; flex-shrink: 0; background: #0f3460;
+      }
+      .sl-page .closed-item .closed-title {
+        flex: 1; font-size: 12px; min-width: 0;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .sl-page .closed-item .closed-time { font-size: 10px; color: #555; flex-shrink: 0; }
+      .sl-page .closed-item .reopen {
+        background: none; border: none; color: #e94560; font-size: 13px;
+        cursor: pointer; flex-shrink: 0; padding: 0 2px;
+      }
+      .sl-page .empty { color: #555; font-size: 12px; text-align: center; padding: 12px; }
+
+      /* Cookie Editor */
+      .sl-page .cookie-header {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0 0 10px; flex-shrink: 0;
+      }
+      .sl-page .cookie-header .domain {
+        font-size: 13px; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .sl-page .cookie-header .count {
+        font-size: 12px; color: #666; background: #16213e;
+        padding: 2px 8px; border-radius: 10px; flex-shrink: 0;
+      }
+      .sl-page .cookie-item {
+        background: #16213e; border-radius: 6px; margin-bottom: 4px;
+        overflow: hidden; transition: background 0.15s;
+      }
+      .sl-page .cookie-item.expanded { background: #1b2a4a; }
+      .sl-page .cookie-row { display: flex; align-items: center; padding: 10px 12px; cursor: pointer; gap: 8px; }
+      .sl-page .cookie-row:hover { background: rgba(255,255,255,0.03); }
+      .sl-page .cookie-chevron {
+        font-size: 10px; color: #666; transition: transform 0.2s;
+        flex-shrink: 0; width: 14px; text-align: center;
+      }
+      .sl-page .cookie-item.expanded .cookie-chevron { transform: rotate(180deg); }
+      .sl-page .cookie-name {
+        flex: 1; font-size: 13px; font-weight: 500;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .sl-page .cookie-del {
+        background: none; border: none; color: #555; font-size: 14px;
+        cursor: pointer; padding: 0 2px; opacity: 0; transition: opacity 0.15s;
+      }
+      .sl-page .cookie-row:hover .cookie-del { opacity: 1; }
+      .sl-page .cookie-del:hover { color: #e94560; }
+      .sl-page .cookie-details { display: none; padding: 0 12px 12px 34px; }
+      .sl-page .cookie-item.expanded .cookie-details { display: block; }
+      .sl-page .cookie-field { margin-bottom: 8px; }
+      .sl-page .cookie-field label {
+        display: block; font-size: 11px; color: #777; margin-bottom: 3px; text-transform: capitalize;
+      }
+      .sl-page .cookie-field input,
+      .sl-page .cookie-field textarea,
+      .modal .cookie-field input,
+      .modal .cookie-field textarea {
+        width: 100%; padding: 6px 8px; background: #0f1e3d; border: 1px solid #2a2a4a;
+        border-radius: 4px; color: #ddd; font-size: 12px;
+        font-family: 'SF Mono', 'Consolas', monospace; resize: vertical;
+      }
+      .sl-page .cookie-field textarea,
+      .modal .cookie-field textarea { min-height: 48px; }
+      .sl-page .cookie-field input:focus,
+      .sl-page .cookie-field textarea:focus,
+      .modal .cookie-field input:focus,
+      .modal .cookie-field textarea:focus { outline: none; border-color: #e94560; }
+      .sl-page .cookie-actions { display: flex; gap: 6px; margin-top: 4px; }
+      .sl-page .cookie-actions button {
+        padding: 4px 10px; border-radius: 4px; border: none;
+        font-size: 11px; font-weight: 600; cursor: pointer;
+      }
+      .sl-page .btn-save, .modal .btn-save { background: #e94560; color: #fff; border: none; cursor: pointer; }
+      .sl-page .btn-save:hover, .modal .btn-save:hover { background: #c73650; }
+      .sl-page .btn-del2 { background: #333; color: #e94560; border: none; cursor: pointer; }
+      .sl-page .btn-del2:hover { background: #444; }
+      .sl-page .advanced-toggle {
+        font-size: 11px; color: #6a9fd8; cursor: pointer; text-align: right;
+        margin-bottom: 6px; text-decoration: underline;
+      }
+      .sl-page .advanced-fields { display: none; }
+      .sl-page .advanced-fields.show { display: block; }
+
+      /* Redirect Tracer */
+      .sl-page .redirect-info { font-size: 11px; color: #666; margin-bottom: 14px; line-height: 1.5; }
+      .sl-page .redirect-step { display: flex; gap: 12px; margin-bottom: 0; position: relative; }
+      .sl-page .redirect-step:last-child .step-line { display: none; }
+      .sl-page .step-icon {
+        width: 40px; height: 40px; flex-shrink: 0; border-radius: 8px;
+        display: flex; align-items: center; justify-content: center; position: relative; z-index: 1;
+      }
+      .sl-page .step-icon.redirect { background: #1a3a5c; border: 2px solid #2a6ab5; }
+      .sl-page .step-icon.final { background: #1a3c2a; border: 2px solid #2a8a4a; }
+      .sl-page .step-icon.error { background: #3c1a1a; border: 2px solid #8a2a2a; }
+      .sl-page .step-icon svg { width: 18px; height: 18px; }
+      .sl-page .step-connector {
+        position: absolute; left: 19px; top: 40px; width: 2px; height: calc(100%); background: #2a2a4a;
+      }
+      .sl-page .step-content { flex: 1; min-width: 0; padding-bottom: 14px; }
+      .sl-page .step-url { font-size: 13px; font-weight: 500; word-break: break-all; line-height: 1.4; color: #e0e0e0; }
+      .sl-page .step-status { font-size: 11px; color: #888; margin-top: 3px; }
+      .sl-page .step-status .code { font-weight: 600; padding: 1px 5px; border-radius: 3px; font-size: 10px; }
+      .sl-page .code-301, .sl-page .code-302, .sl-page .code-303,
+      .sl-page .code-307, .sl-page .code-308 { background: #1a3a5c; color: #6ab0f3; }
+      .sl-page .code-200 { background: #1a3c2a; color: #6af38a; }
+      .sl-page .code-4xx, .sl-page .code-5xx { background: #3c1a1a; color: #f36a6a; }
+      .sl-page .redirect-empty { text-align: center; padding: 40px 20px; color: #555; }
+      .sl-page .redirect-empty .big-icon { font-size: 36px; margin-bottom: 10px; }
+      .sl-page .redirect-empty p { font-size: 12px; }
+
+      /* Big toggle / status shared by Dark, X Unhook, YT Unhook, GDPR, JSON, JS */
+      .sl-page .sl-status { font-size: 14px; font-weight: 600; }
+      .sl-page .sl-status.on { color: #e94560; }
+      .sl-page .sl-status.off { color: #555; }
+      .sl-page .big-switch { position: relative; width: 56px; height: 30px; }
+      .sl-page .big-switch input { opacity: 0; width: 0; height: 0; }
+      .sl-page .big-slider {
+        position: absolute; inset: 0; background: #333; border-radius: 30px;
+        cursor: pointer; transition: background 0.3s;
+      }
+      .sl-page .big-slider::before {
+        content: ''; position: absolute; width: 22px; height: 22px; left: 4px; bottom: 4px;
+        background: #fff; border-radius: 50%; transition: transform 0.3s;
+      }
+      .sl-page .big-switch input:checked + .big-slider { background: #e94560; }
+      .sl-page .big-switch input:checked + .big-slider::before { transform: translateX(26px); }
+
+      /* Dark Mode */
+      .sl-page .dark-big-toggle { display: flex; flex-direction: column; align-items: center; padding: 24px 0 20px; gap: 12px; }
+      .sl-page .dark-big-toggle .moon { font-size: 48px; line-height: 1; }
+      .sl-page .dark-host { text-align: center; font-size: 12px; color: #666; margin-bottom: 16px; }
+      .sl-page .dark-section { padding: 10px 12px; background: #16213e; border-radius: 8px; margin-bottom: 10px; }
+      .sl-page .dark-section label { display: block; font-size: 12px; color: #888; margin-bottom: 6px; }
+      .sl-page .dark-section .range-row { display: flex; align-items: center; gap: 10px; }
+      .sl-page .dark-section input[type="range"] { flex: 1; accent-color: #e94560; height: 4px; }
+      .sl-page .dark-section .range-val { font-size: 12px; color: #aaa; min-width: 36px; text-align: right; }
+      .sl-page .dark-scope { display: flex; gap: 6px; margin-bottom: 10px; }
+      .sl-page .dark-scope button {
+        flex: 1; padding: 8px; border: 1px solid #2a2a4a; background: #16213e; color: #888;
+        border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s;
+      }
+      .sl-page .dark-scope button:focus { outline: none; }
+      .sl-page .dark-scope button.active { border-color: #e94560; color: #e94560; background: #2a1525; }
+
+      /* GDPR / JSON shared */
+      .sl-page .nocookie-big-toggle { display: flex; flex-direction: column; align-items: center; padding: 24px 0 16px; gap: 12px; }
+      .sl-page .nocookie-big-toggle .ncicon { font-size: 44px; line-height: 1; }
+      .sl-page .nocookie-stats {
+        padding: 10px 12px; background: #16213e; border-radius: 8px;
+        margin-bottom: 10px; font-size: 12px; color: #888; line-height: 1.6;
+      }
+      .sl-page .nocookie-stats b { color: #e0e0e0; }
+      .sl-page .xdim-note { font-size: 11px; color: #555; text-align: center; padding: 8px; line-height: 1.5; }
+
+      /* Live CSS Editor */
+      .sl-page .livecss-host { font-size: 12px; color: #666; margin-bottom: 8px; }
+      .sl-page .livecss-editor {
+        width: 100%; min-height: 220px; padding: 10px; font-size: 12px;
+        font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
+        background: #0a0a1a; color: #a8d8a8; border: 1px solid #2a2a4a; border-radius: 6px;
+        resize: vertical; tab-size: 2; line-height: 1.5;
+      }
+      .sl-page .livecss-editor:focus { outline: none; border-color: #e94560; }
+      .sl-page .livecss-editor::placeholder { color: #333; }
+      .sl-page .livecss-btns { display: flex; gap: 6px; margin-top: 8px; }
+      .sl-page .livecss-btns button { padding: 6px 14px; border-radius: 6px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; }
+
+      /* Unhook (YT + X) */
+      .sl-page .unhook-big-toggle { display: flex; flex-direction: column; align-items: center; padding: 24px 0 16px; gap: 12px; }
+      .sl-page .unhook-big-toggle .yticon { font-size: 44px; line-height: 1; }
+      .sl-page .unhook-feature {
+        display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+        background: #16213e; border-radius: 8px; margin-bottom: 6px; font-size: 12px;
+      }
+      .sl-page .unhook-feature .check { color: #4caf50; font-size: 14px; flex-shrink: 0; }
+      .sl-page .unhook-feature.off .check { color: #555; }
+
+      /* JS Toggle */
+      .sl-page .js-big-toggle { display: flex; flex-direction: column; align-items: center; padding: 24px 0 16px; gap: 12px; }
+      .sl-page .js-big-toggle .jsicon {
+        font-size: 44px; line-height: 1; font-weight: 800;
+        font-family: -apple-system, sans-serif; color: #f7df1e;
+      }
+      .sl-page .js-status-row {
+        display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+        background: #16213e; border-radius: 8px; margin-bottom: 10px;
+      }
+      .sl-page .js-status-row .indicator { width: 10px; height: 10px; border-radius: 50%; }
+      .sl-page .js-status-row .indicator.on { background: #4caf50; }
+      .sl-page .js-status-row .indicator.off { background: #e94560; }
+      .sl-page .js-status-row .label { font-size: 13px; flex: 1; }
+      .sl-page .js-note { font-size: 11px; color: #555; text-align: center; padding: 8px; line-height: 1.5; }
+
+      /* Music Recognizer */
+      .sl-page .music-center {
+        display: flex; flex-direction: column; align-items: center; padding: 20px 0 16px; gap: 8px;
+        border-radius: 16px; margin: 0 0 10px; transition: background 0.4s, padding 0.4s;
+      }
+      .sl-page .music-center.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 0 20px; }
+      .sl-page .listen-btn {
+        width: 100px; height: 100px; border-radius: 50%; border: none; background: #fff;
+        cursor: pointer; display: flex; align-items: center; justify-content: center;
+        transition: all 0.3s; position: relative; box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      }
+      .sl-page .listen-btn:hover { transform: scale(1.05); }
+      .sl-page .listen-btn .mic-icon { display: block; }
+      .sl-page .listen-btn .bars-icon { display: none; }
+      .sl-page .listen-btn.recording .mic-icon { display: none; }
+      .sl-page .listen-btn.recording .bars-icon { display: flex; }
+      .sl-page .listen-btn.recording { animation: sl-pulse-ring 1.5s ease-out infinite; }
+      .sl-page .sound-bars { display: flex; align-items: center; gap: 4px; height: 36px; }
+      .sl-page .sound-bars .bar { width: 6px; border-radius: 3px; background: #e94560; animation: sl-soundbar 1s ease-in-out infinite; }
+      .sl-page .sound-bars .bar:nth-child(1) { height: 24px; animation-delay: 0s; }
+      .sl-page .sound-bars .bar:nth-child(2) { height: 36px; animation-delay: 0.15s; }
+      .sl-page .sound-bars .bar:nth-child(3) { height: 28px; animation-delay: 0.3s; }
+      .sl-page .sound-bars .bar:nth-child(4) { height: 36px; animation-delay: 0.45s; }
+      .sl-page .sound-bars .bar:nth-child(5) { height: 20px; animation-delay: 0.6s; }
+      @keyframes sl-soundbar { 0%, 100% { transform: scaleY(0.4); } 50% { transform: scaleY(1); } }
+      @keyframes sl-pulse-ring {
+        0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
+        70% { box-shadow: 0 0 0 16px rgba(255,255,255,0); }
+        100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+      }
+      .sl-page .listen-label { font-size: 15px; font-weight: 600; color: #888; margin-top: 4px; transition: color 0.3s; }
+      .sl-page .music-center.active .listen-label { color: #fff; }
+      .sl-page .listen-timer {
+        font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums;
+        color: #e94560; min-height: 32px; transition: color 0.3s;
+      }
+      .sl-page .music-center.active .listen-timer { color: #fff; }
+      .sl-page .music-result { margin-top: 8px; width: 100%; }
+      .sl-page .music-result .song-card {
+        background: #16213e; border-radius: 10px; padding: 14px; display: flex; gap: 12px; align-items: center;
+      }
+      .sl-page .song-card .art {
+        width: 56px; height: 56px; border-radius: 8px; background: #0f3460;
+        display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; overflow: hidden;
+      }
+      .sl-page .song-card .art img { width: 100%; height: 100%; object-fit: cover; }
+      .sl-page .song-card .info { flex: 1; min-width: 0; }
+      .sl-page .song-card .title { font-size: 14px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .sl-page .song-card .artist { font-size: 12px; color: #aaa; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .sl-page .song-card .album { font-size: 11px; color: #666; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .sl-page .music-error { text-align: center; padding: 12px; background: #2a1525; border-radius: 8px; font-size: 12px; color: #e94560; }
+      .sl-page .music-history { margin-top: 14px; }
+      .sl-page .music-history h2 { margin-bottom: 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #888; }
+      .sl-page .history-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: #16213e; border-radius: 6px; margin-bottom: 4px; }
+      .sl-page .history-item .h-title { font-size: 12px; font-weight: 500; color: #ddd; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .sl-page .history-item .h-artist { font-size: 11px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px; }
+
+      /* Picture-in-Picture */
+      .sl-page .pip-center { display: flex; flex-direction: column; align-items: center; padding: 24px 0 16px; gap: 12px; }
+      .sl-page .pip-icon { font-size: 48px; line-height: 1; }
+      .sl-page .pip-btn {
+        width: 100px; height: 100px; border-radius: 50%; border: none; background: #16213e; color: #e94560;
+        cursor: pointer; display: flex; align-items: center; justify-content: center;
+        transition: all 0.2s; box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      }
+      .sl-page .pip-btn:hover { background: #1b2a4a; transform: scale(1.05); }
+      .sl-page .pip-btn.active { background: #e94560; color: #fff; }
+      .sl-page .pip-label { font-size: 14px; font-weight: 600; color: #888; }
+      .sl-page .pip-status { font-size: 12px; color: #555; min-height: 18px; transition: color 0.2s; }
+      .sl-page .pip-status.ok { color: #4caf50; }
+      .sl-page .pip-status.err { color: #e94560; }
+
+      /* Bottom toolbar (Cookie + Redirect pages) */
+      .sl-page .toolbar { display: flex; flex-shrink: 0; border-top: 1px solid #2a2a4a; background: #0f0f23; border-radius: 0 0 10px 10px; margin-top: 10px; }
+      .sl-page .toolbar button {
+        flex: 1; padding: 10px; background: none; border: none; color: #aaa; font-size: 18px;
+        cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; transition: color 0.15s;
+      }
+      .sl-page .toolbar button span { font-size: 10px; font-weight: 500; }
+      .sl-page .toolbar button:hover { color: #fff; background: rgba(255,255,255,0.04); }
+      .sl-page .toolbar button.danger:hover { color: #e94560; }
+
+      /* Add cookie modal (lives outside .sl-page, at body level) */
+      .modal-overlay {
+        display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+        z-index: 100; justify-content: center; align-items: center;
+      }
+      .modal-overlay.show { display: flex; }
+      .modal {
+        background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 10px;
+        padding: 16px; width: 320px; max-height: 420px; overflow-y: auto;
+      }
+      .modal h3 { font-size: 15px; margin-bottom: 12px; }
+      .modal .cookie-field { margin-bottom: 10px; }
+      .modal .cookie-field label { display: block; font-size: 11px; color: #777; margin-bottom: 3px; text-transform: capitalize; }
+      .modal-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+      .modal-btns button { padding: 6px 16px; border-radius: 6px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; }
+      .modal .btn-cancel { background: #333; color: #aaa; }
+      .modal .btn-cancel:hover { background: #444; }
+    </style>
   </head>
   <body>
     <main class="shell">
@@ -40,6 +413,54 @@
         <button type="button" class="tab" role="tab" aria-selected="false" data-app="instagram">
           <span class="tab-icon" aria-hidden="true">IG</span>
           <span class="tab-label">Instagram</span>
+        </button>
+        <button type="button" class="tab" role="tab" aria-selected="false" data-app="tabcleaner">
+          <span class="tab-icon" aria-hidden="true">🚮</span>
+          <span class="tab-label">Tabs</span>
+        </button>
+        <button type="button" class="tab" role="tab" aria-selected="false" data-app="cookies">
+          <span class="tab-icon" aria-hidden="true">🍪</span>
+          <span class="tab-label">Cookies</span>
+        </button>
+        <button type="button" class="tab" role="tab" aria-selected="false" data-app="redirects">
+          <span class="tab-icon" aria-hidden="true">🔀</span>
+          <span class="tab-label">Redirects</span>
+        </button>
+        <button type="button" class="tab" role="tab" aria-selected="false" data-app="darkmode">
+          <span class="tab-icon" aria-hidden="true">🌙</span>
+          <span class="tab-label">Dark</span>
+        </button>
+        <button type="button" class="tab" role="tab" aria-selected="false" data-app="xunhook">
+          <span class="tab-icon" aria-hidden="true">𝕏</span>
+          <span class="tab-label">X Unhook</span>
+        </button>
+        <button type="button" class="tab" role="tab" aria-selected="false" data-app="jstoggle">
+          <span class="tab-icon" aria-hidden="true">⚡</span>
+          <span class="tab-label">JS</span>
+        </button>
+        <button type="button" class="tab" role="tab" aria-selected="false" data-app="nocookie">
+          <span class="tab-icon" aria-hidden="true">🚫</span>
+          <span class="tab-label">GDPR</span>
+        </button>
+        <button type="button" class="tab" role="tab" aria-selected="false" data-app="livecss">
+          <span class="tab-icon" aria-hidden="true">🎨</span>
+          <span class="tab-label">CSS</span>
+        </button>
+        <button type="button" class="tab" role="tab" aria-selected="false" data-app="unhook">
+          <span class="tab-icon" aria-hidden="true">📺</span>
+          <span class="tab-label">YT Unhook</span>
+        </button>
+        <button type="button" class="tab" role="tab" aria-selected="false" data-app="music">
+          <span class="tab-icon" aria-hidden="true">🎵</span>
+          <span class="tab-label">Music</span>
+        </button>
+        <button type="button" class="tab" role="tab" aria-selected="false" data-app="pip">
+          <span class="tab-icon" aria-hidden="true">🖼</span>
+          <span class="tab-label">PiP</span>
+        </button>
+        <button type="button" class="tab" role="tab" aria-selected="false" data-app="jsonformat">
+          <span class="tab-icon" aria-hidden="true">{}</span>
+          <span class="tab-label">JSON</span>
         </button>
       </nav>
 
@@ -502,8 +923,328 @@
         </label>
       </section>
 
+      <!-- ═══ Tab Cleaner (superlevels) ═══ -->
+      <section class="pane sl-page" data-app="tabcleaner" role="tabpanel" hidden>
+        <div class="sl-body">
+          <div class="toggle-row">
+            <label>Auto-close enabled</label>
+            <label class="sl-switch">
+              <input type="checkbox" id="enabled">
+              <span class="sl-slider"></span>
+            </label>
+          </div>
+          <div class="timeout-row">
+            <label>Close after</label>
+            <input type="number" id="timeout" min="1" max="1440" value="5">
+            <span>minutes of inactivity</span>
+          </div>
+          <h2 class="sl-h2">Excluded Hosts</h2>
+          <div class="add-row">
+            <input type="text" id="hostInput" placeholder="e.g. google.com">
+            <button id="addBtn">Add</button>
+          </div>
+          <div class="exc-list" id="list"></div>
+          <div class="closed-section" id="closedSection"></div>
+        </div>
+      </section>
+
+      <!-- ═══ Cookie Editor (superlevels) ═══ -->
+      <section class="pane sl-page" data-app="cookies" role="tabpanel" hidden>
+        <div class="sl-body" id="cookieBody">
+          <div class="cookie-header">
+            <div class="domain" id="cookieDomain">Loading...</div>
+            <div class="count" id="cookieCount">0</div>
+          </div>
+          <div id="cookieList"></div>
+        </div>
+        <div class="toolbar">
+          <button id="btnAdd" title="Add Cookie">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>Add</span>
+          </button>
+          <button id="btnDeleteAll" class="danger" title="Delete All Cookies">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+            <span>Delete All</span>
+          </button>
+          <button id="btnRefresh" title="Refresh">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            <span>Refresh</span>
+          </button>
+          <button id="btnExport" title="Export Cookies">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+            <span>Export</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ═══ Redirect Tracer (superlevels) ═══ -->
+      <section class="pane sl-page" data-app="redirects" role="tabpanel" hidden>
+        <div class="sl-body" id="redirectBody">
+          <div class="redirect-info">
+            All URLs your browser visited on the way to the current page. If no redirects took place, only one URL is listed.
+          </div>
+          <div id="redirectChain"></div>
+        </div>
+        <div class="toolbar">
+          <button id="btnRedirectRefresh" title="Refresh">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            <span>Refresh</span>
+          </button>
+          <button id="btnRedirectCopy" title="Copy to Clipboard">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            <span>Copy</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ═══ Dark Mode (superlevels) ═══ -->
+      <section class="pane sl-page" data-app="darkmode" role="tabpanel" hidden>
+        <div class="sl-body">
+          <div class="dark-big-toggle">
+            <div class="moon">🌙</div>
+            <label class="big-switch">
+              <input type="checkbox" id="darkToggle">
+              <span class="big-slider"></span>
+            </label>
+            <div class="sl-status off" id="darkStatus">OFF</div>
+          </div>
+          <div class="dark-host" id="darkHost"></div>
+          <div class="dark-scope">
+            <button id="scopeSite" class="active">This site only</button>
+            <button id="scopeGlobal">All sites</button>
+          </div>
+          <div class="dark-section">
+            <label>Brightness</label>
+            <div class="range-row">
+              <input type="range" id="darkBrightness" min="60" max="120" value="100">
+              <span class="range-val" id="darkBrightnessVal">100%</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ X Unhook (superlevels) ═══ -->
+      <section class="pane sl-page" data-app="xunhook" role="tabpanel" hidden>
+        <div class="sl-body">
+          <div class="unhook-big-toggle">
+            <div class="yticon" style="font-weight:800;font-family:-apple-system,sans-serif;">𝕏</div>
+            <label class="big-switch">
+              <input type="checkbox" id="xunhookToggle" checked>
+              <span class="big-slider"></span>
+            </label>
+            <div class="sl-status on" id="xunhookStatus">ON</div>
+          </div>
+          <div class="unhook-features">
+            <div class="unhook-feature"><span class="check">✓</span> Hide sidebar panels (Trends, News, Live on X)</div>
+            <div class="unhook-feature"><span class="check">✓</span> Keep search bar at top of sidebar</div>
+            <div class="unhook-feature"><span class="check">✓</span> Hide Explore tab in left nav</div>
+            <div class="unhook-feature"><span class="check">✓</span> Hide Explore in More overflow menu</div>
+          </div>
+          <div class="xdim-note" style="margin-top:10px">
+            Removes X / Twitter distractions.<br>
+            Toggle off if a page breaks.
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ JS Toggle (superlevels) ═══ -->
+      <section class="pane sl-page" data-app="jstoggle" role="tabpanel" hidden>
+        <div class="sl-body">
+          <div class="js-big-toggle">
+            <div class="jsicon">JS</div>
+            <label class="big-switch">
+              <input type="checkbox" id="jsToggle" checked>
+              <span class="big-slider"></span>
+            </label>
+            <div class="sl-status on" id="jsStatus">ENABLED</div>
+          </div>
+          <div class="js-status-row">
+            <div class="indicator on" id="jsIndicator"></div>
+            <span class="label" id="jsHostLabel">Loading...</span>
+          </div>
+          <div class="js-note">
+            Disable JavaScript for the current site.<br>
+            The page will reload when toggled.
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ GDPR Cookie Dismisser (superlevels) ═══ -->
+      <section class="pane sl-page" data-app="nocookie" role="tabpanel" hidden>
+        <div class="sl-body">
+          <div class="nocookie-big-toggle">
+            <div class="ncicon">🚫🍪</div>
+            <label class="big-switch">
+              <input type="checkbox" id="nocookieToggle" checked>
+              <span class="big-slider"></span>
+            </label>
+            <div class="sl-status on" id="nocookieStatus">ON</div>
+          </div>
+          <div class="nocookie-stats">
+            <b>Auto-dismisses cookie consent popups</b><br>
+            Hides banners via CSS and auto-clicks accept buttons for common consent frameworks:
+            OneTrust, CookieBot, Didomi, Quantcast, GDPR plugins, and more.
+          </div>
+          <div class="xdim-note">
+            Works on most sites automatically.<br>
+            Toggle off if a site breaks.
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ Live CSS Editor (superlevels) ═══ -->
+      <section class="pane sl-page" data-app="livecss" role="tabpanel" hidden>
+        <div class="sl-body">
+          <div class="livecss-host" id="livecssHost">Loading...</div>
+          <textarea class="livecss-editor" id="livecssEditor" placeholder="/* Type CSS here — applied live */&#10;body {&#10;  background: #111;&#10;}" spellcheck="false"></textarea>
+          <div class="livecss-btns">
+            <button class="btn-save" id="livecssSave">Save</button>
+            <button class="btn-del2" id="livecssClear">Clear</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ YouTube Unhook (superlevels) ═══ -->
+      <section class="pane sl-page" data-app="unhook" role="tabpanel" hidden>
+        <div class="sl-body">
+          <div class="unhook-big-toggle">
+            <div class="yticon">📺</div>
+            <label class="big-switch">
+              <input type="checkbox" id="unhookToggle" checked>
+              <span class="big-slider"></span>
+            </label>
+            <div class="sl-status on" id="unhookStatus">ON</div>
+          </div>
+          <div class="unhook-features" id="unhookFeatures">
+            <div class="unhook-feature"><span class="check">✓</span> Black homepage — no feed</div>
+            <div class="unhook-feature"><span class="check">✓</span> No sidebar suggestions</div>
+            <div class="unhook-feature"><span class="check">✓</span> No end screen overlays</div>
+            <div class="unhook-feature"><span class="check">✓</span> No Shorts shelves</div>
+            <div class="unhook-feature"><span class="check">✓</span> Wider video player</div>
+          </div>
+          <div class="xdim-note" style="margin-top:10px">
+            Removes YouTube distractions.<br>
+            Search still works — just no recommendations.
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ Music Recognizer (superlevels) ═══ -->
+      <section class="pane sl-page" data-app="music" role="tabpanel" hidden>
+        <div class="sl-body">
+          <div class="music-center">
+            <button class="listen-btn" id="listenBtn">
+              <span class="mic-icon">
+                <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="#e94560" stroke-width="2" stroke-linecap="round">
+                  <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
+                  <path d="M19 10v2a7 7 0 01-14 0v-2"/>
+                  <line x1="12" y1="19" x2="12" y2="23"/>
+                  <line x1="8" y1="23" x2="16" y2="23"/>
+                </svg>
+              </span>
+              <span class="bars-icon">
+                <div class="sound-bars">
+                  <div class="bar"></div>
+                  <div class="bar"></div>
+                  <div class="bar"></div>
+                  <div class="bar"></div>
+                  <div class="bar"></div>
+                </div>
+              </span>
+            </button>
+            <div class="listen-timer" id="listenTimer"></div>
+            <div class="listen-label" id="listenLabel">Tap to listen</div>
+            <button id="acrSettingsBtn" style="background:none;border:none;color:#555;font-size:16px;cursor:pointer;margin-top:4px;" title="API Settings">⚙️</button>
+          </div>
+          <div class="music-result" id="musicResult"></div>
+          <div class="music-history" id="musicHistory"></div>
+          <div class="dark-section" id="acrConfig" style="margin-top:14px;display:none">
+            <a href="https://www.acrcloud.com/sign-up/" target="_blank" style="display:block;text-align:center;padding:8px;margin-bottom:10px;background:#2a1525;border:1px solid #e94560;border-radius:6px;color:#e94560;font-size:12px;font-weight:600;text-decoration:none;">Sign up for free ACRCloud API keys →</a>
+            <label>ACRCloud Host</label>
+            <input type="text" id="acrHost" placeholder="identify-eu-west-1.acrcloud.com" style="width:100%;padding:6px 8px;background:#0f1e3d;border:1px solid #2a2a4a;border-radius:4px;color:#ddd;font-size:12px;margin-bottom:6px;">
+            <label>Access Key</label>
+            <input type="text" id="acrKey" placeholder="your access key" style="width:100%;padding:6px 8px;background:#0f1e3d;border:1px solid #2a2a4a;border-radius:4px;color:#ddd;font-size:12px;margin-bottom:6px;">
+            <label>Access Secret</label>
+            <input type="password" id="acrSecret" placeholder="your access secret" style="width:100%;padding:6px 8px;background:#0f1e3d;border:1px solid #2a2a4a;border-radius:4px;color:#ddd;font-size:12px;margin-bottom:6px;">
+            <button class="btn-save" id="acrSaveBtn" style="margin-top:4px;padding:6px 14px;font-size:12px;">Save</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ Picture-in-Picture (superlevels) ═══ -->
+      <section class="pane sl-page" data-app="pip" role="tabpanel" hidden>
+        <div class="sl-body">
+          <div class="pip-center">
+            <div class="pip-icon">🖼</div>
+            <button class="pip-btn" id="pipBtn">
+              <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                <rect x="12" y="9" width="8" height="6" rx="1" ry="1" fill="currentColor" opacity="0.3"/>
+                <polyline points="8 21 12 17 16 21"/>
+              </svg>
+            </button>
+            <div class="pip-label" id="pipLabel">Toggle Picture-in-Picture</div>
+            <div class="pip-status" id="pipStatus"></div>
+          </div>
+          <div class="xdim-note" style="margin-top:10px">
+            Pops the largest video on the current tab<br>
+            into a floating window. Click again to exit.
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ JSON Formatter (superlevels) ═══ -->
+      <section class="pane sl-page" data-app="jsonformat" role="tabpanel" hidden>
+        <div class="sl-body">
+          <div class="nocookie-big-toggle">
+            <div class="ncicon">{&thinsp;}</div>
+            <label class="big-switch">
+              <input type="checkbox" id="jsonformatToggle" checked>
+              <span class="big-slider"></span>
+            </label>
+            <div class="sl-status on" id="jsonformatStatus">ON</div>
+          </div>
+          <div class="nocookie-stats">
+            <b>Auto-formats JSON responses</b><br>
+            Detects pure JSON pages and displays them with syntax highlighting,
+            collapsible sections, and a dark theme. Copy or view raw with one click.
+          </div>
+          <div class="xdim-note">
+            Only triggers on actual JSON responses.<br>
+            Regular HTML pages are never affected.
+          </div>
+        </div>
+      </section>
+
       <p id="message" class="message" role="status"></p>
     </main>
+
+    <!-- Add Cookie Modal (superlevels) -->
+    <div class="modal-overlay" id="addModal">
+      <div class="modal">
+        <h3>🍪 Add Cookie</h3>
+        <div class="cookie-field">
+          <label>Name</label>
+          <input type="text" id="newName" placeholder="cookie_name">
+        </div>
+        <div class="cookie-field">
+          <label>Value</label>
+          <textarea id="newValue" placeholder="cookie_value"></textarea>
+        </div>
+        <div class="cookie-field">
+          <label>Domain</label>
+          <input type="text" id="newDomain" placeholder=".example.com">
+        </div>
+        <div class="cookie-field">
+          <label>Path</label>
+          <input type="text" id="newPath" value="/">
+        </div>
+        <div class="modal-btns">
+          <button class="btn-cancel" id="modalCancel">Cancel</button>
+          <button class="btn-save" id="modalSave">Add Cookie</button>
+        </div>
+      </div>
+    </div>
     <script src="popup.js"></script>
   </body>
 </html>

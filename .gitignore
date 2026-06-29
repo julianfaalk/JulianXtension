@@ -1,4 +1,5 @@
 .DS_Store
 .chrome-profile/
+.merge-backup/
 dist/
 *.zip

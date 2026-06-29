@@ -1,37 +1,23 @@
 {
   "manifest_version": 3,
   "name": "Julians Tweaks",
-  "description": "Annoyance-Killer für X, YouTube, Google, LinkedIn, Reddit, GitHub & Instagram unter einem Popup.",
-  "version": "1.9.0",
+  "description": "Annoyance-Killer für X, YouTube, Google, LinkedIn, Reddit, GitHub & Instagram — plus Tab Cleaner, Cookie Editor, Redirect Tracer, Dark Mode, GDPR Cookie Dismisser, Live CSS, JSON Formatter, Picture-in-Picture, View Image & JS-Toggle, alles unter einem Popup.",
+  "version": "2.0.0",
   "default_locale": "en",
   "permissions": [
-    "activeTab",
-    "scripting",
+    "tabs",
     "storage",
-    "tabs"
+    "alarms",
+    "cookies",
+    "activeTab",
+    "webRequest",
+    "webNavigation",
+    "tabCapture",
+    "contentSettings",
+    "scripting"
   ],
   "host_permissions": [
-    "https://x.com/*",
-    "https://twitter.com/*",
-    "https://pro.x.com/*",
-    "https://*.x.com/*",
-    "https://*.twitter.com/*",
-    "https://www.youtube.com/*",
-    "https://m.youtube.com/*",
-    "https://music.youtube.com/*",
-    "https://www.google.com/*",
-    "https://www.google.de/*",
-    "https://www.google.co.uk/*",
-    "https://www.google.at/*",
-    "https://www.google.ch/*",
-    "https://www.linkedin.com/*",
-    "https://*.linkedin.com/*",
-    "https://www.reddit.com/*",
-    "https://old.reddit.com/*",
-    "https://new.reddit.com/*",
-    "https://github.com/*",
-    "https://gist.github.com/*",
-    "https://www.instagram.com/*"
+    "<all_urls>"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -52,15 +38,27 @@
   },
   "content_scripts": [
     {
+      "matches": ["<all_urls>"],
+      "js": ["darkmode.js", "nocookie.js", "livecss.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["jsonformat.js"],
+      "run_at": "document_end"
+    },
+    {
       "matches": [
         "https://x.com/*",
         "https://twitter.com/*",
         "https://pro.x.com/*",
         "https://*.x.com/*",
-        "https://*.twitter.com/*"
+        "https://*.twitter.com/*",
+        "https://mobile.x.com/*",
+        "https://mobile.twitter.com/*"
       ],
       "css": ["preload.css"],
-      "js": ["xdim.js", "content.js"],
+      "js": ["xdim.js", "content.js", "xunhook.js"],
       "run_at": "document_start"
     },
     {
@@ -68,7 +66,7 @@
         "https://www.youtube.com/*",
         "https://m.youtube.com/*"
       ],
-      "js": ["youtube.js"],
+      "js": ["youtube.js", "unhook.js"],
       "run_at": "document_start"
     },
     {
@@ -81,6 +79,31 @@
       ],
       "js": ["google.js"],
       "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "*://www.google.com/*",
+        "*://www.google.co.uk/*",
+        "*://www.google.co.jp/*",
+        "*://www.google.co.in/*",
+        "*://www.google.co.kr/*",
+        "*://www.google.co.id/*",
+        "*://www.google.com.br/*",
+        "*://www.google.com.au/*",
+        "*://www.google.com.mx/*",
+        "*://www.google.de/*",
+        "*://www.google.fr/*",
+        "*://www.google.es/*",
+        "*://www.google.it/*",
+        "*://www.google.nl/*",
+        "*://www.google.pt/*",
+        "*://www.google.pl/*",
+        "*://www.google.se/*",
+        "*://www.google.ca/*",
+        "*://www.google.ru/*"
+      ],
+      "js": ["gmaps.js", "viewimage.js"],
+      "run_at": "document_end"
     },
     {
       "matches": [
