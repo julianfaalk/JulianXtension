@@ -1,6 +1,10 @@
-# Julians Tweaks
+# JulianXtension
 
-A Manifest V3 Chrome extension that bundles **7 per-site annoyance-killers** under one popup. Settings sync across devices via `chrome.storage.sync`.
+> One Chrome extension to declutter the web. 🧹
+
+A Manifest V3 Chrome extension that bundles **per-site annoyance-killers** for X, YouTube, Google, LinkedIn, Reddit, GitHub & Instagram — plus a toolbox of handy tweaks — all under one popup. Settings sync across devices via `chrome.storage.sync`.
+
+**Reuse it freely** — fork it, remix it, build your own version. If you ship something cool with it, I'd love to hear about it.
 
 ## Apps
 
@@ -27,7 +31,7 @@ All settings persist in `chrome.storage.local`. Toggling propagates to every ope
 ## Reload after changes
 
 1. `chrome://extensions`
-2. Reload icon on the **Julians Tweaks** card
+2. Reload icon on the **JulianXtension** card
 3. Refresh open target tabs
 
 ## Architecture
@@ -61,3 +65,9 @@ The popup uses `wireToggleGroup(app, applyMessageType, toggles)` to wire any num
 3. Add a `<section class="pane" data-app="...">` in `popup.html` and a tab button
 4. Add `init<App>()` in `popup.js` using `wireToggleGroup` and call it from `init()`
 5. Add the app's entry to the `APP_META` map and storage keys to `STORAGE_KEYS`
+
+## Credits
+
+Built by **Julian Falk** — say hi on X: [@julianfaalk](https://x.com/julianfaalk)
+
+Feel free to reuse, fork and adapt this project for your own needs. ⭐ the repo if it's useful to you!

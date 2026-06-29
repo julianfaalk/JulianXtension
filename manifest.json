@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Julians Tweaks",
+  "name": "JulianXtension",
   "description": "Annoyance-Killer für X, YouTube, Google, LinkedIn, Reddit, GitHub & Instagram — plus Tab Cleaner, Cookie Editor, Redirect Tracer, Dark Mode, GDPR Cookie Dismisser, Live CSS, JSON Formatter, Picture-in-Picture, View Image & JS-Toggle, alles unter einem Popup.",
   "version": "2.0.3",
   "default_locale": "en",
@@ -21,7 +21,7 @@
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Julians Tweaks",
+    "default_title": "JulianXtension",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",

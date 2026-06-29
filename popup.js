@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------
-   Julians Tweaks — popup controller
+   JulianXtension — popup controller
    6 apps: X Themes, YouTube, Google, LinkedIn, Reddit, GitHub.
    Each app:
    - Owns one or more storage keys

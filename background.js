@@ -236,7 +236,7 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 // ═══════════════════════════════════
-//  Julians Tweaks — admin (uninstall survey + welcome page)
+//  JulianXtension — admin (uninstall survey + welcome page)
 // ═══════════════════════════════════
 chrome.runtime.setUninstallURL(
   "https://docs.google.com/forms/d/e/1FAIpQLSewJf4DzNQpDiemgLskxtiTr8v8jGsRnf2TElorW2gLvkuagg/viewform"
