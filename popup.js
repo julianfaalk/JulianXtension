@@ -402,7 +402,7 @@ function refreshXHint() {
 
 function initXDimLinks() {
   els.xExtrasLink.title = i18nMessage("extras", "Extras");
-  els.xCreditLink.textContent = "Made by @jlnfalk";
+  els.xCreditLink.textContent = "Made by @julianfaalk";
   els.xShareLink.textContent = i18nMessage("popupShareLink", "Share");
   els.xShareLink.href = SHARE_URL;
   if (els.xVersion) {
