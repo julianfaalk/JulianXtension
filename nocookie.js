@@ -46,6 +46,9 @@
     .termly-consent-banner, #termly-code-snippet-support,
     .CybotCookiebotDialog, #CybotCookiebotDialog,
     #CybotCookiebotDialogBodyUnderlay,
+    #termsfeed-com---nb, .termsfeed-com---nb,
+    .termsfeed-com---pc-dialog, .termsfeed-com---pc-overlay,
+    .termsfeed-com---nb-interstitial-overlay,
     .cmplz-cookiebanner, #cmplz-cookiebanner-container {
       display: none !important;
       visibility: hidden !important;
@@ -84,6 +87,7 @@
     ".qc-cmp2-summary-buttons button[mode='primary']",
     ".qc-cmp-button[mode='primary']",
     ".fc-cta-consent .fc-primary-button",
+    ".cc-nb-okagree",                 // TermsFeed "Accept all"
     ".cc-accept", ".cc-btn.cc-dismiss", ".cc-allow",
     "[data-cookiefirst-action='accept']",
     ".cookie-accept", ".js-cookie-accept",
@@ -115,6 +119,40 @@
     '[aria-label="Close" i][class*="consent" i]',
   ];
 
+  // Exact (normalized) button-text matches for the generic fallback. German +
+  // English consent phrasing — many CMPs (e.g. TermsFeed) label the button by
+  // text only, with no matching id/class/title/aria-label. Curated to consent
+  // wording to avoid mis-clicking unrelated buttons.
+  const ACCEPT_TEXTS = [
+    "alle akzeptieren", "alle cookies akzeptieren", "alle cookies erlauben",
+    "allen zustimmen", "alle annehmen", "alle auswählen und bestätigen",
+    "akzeptieren und schließen", "zustimmen und weiter", "ich stimme zu",
+    "alle akzeptieren und schließen",
+    "zustimmen", "einverstanden", "akzeptieren", "verstanden",
+    "accept all", "accept all cookies", "allow all", "allow all cookies",
+    "accept all and close", "i accept", "i agree", "accept cookies",
+    "accept and continue", "agree and close",
+  ];
+
+  const norm = (s) => (s || "").replace(/\s+/g, " ").trim().toLowerCase();
+
+  function clickByText() {
+    const nodes = document.querySelectorAll(
+      'button, [role="button"], a, input[type="button"], input[type="submit"]'
+    );
+    for (const phrase of ACCEPT_TEXTS) {
+      for (const el of nodes) {
+        if (el.offsetParent === null) continue; // not visible
+        const label = el.tagName === "INPUT" ? el.value : el.textContent;
+        if (norm(label) === phrase) {
+          el.click();
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   function injectCSS() {
     if (document.getElementById(STYLE_ID)) return;
     const style = document.createElement("style");
@@ -133,7 +171,7 @@
         }
       } catch {}
     }
-    return false;
+    return clickByText();
   }
 
   function removeCSS() {
@@ -141,12 +179,29 @@
     if (el) el.remove();
   }
 
+  // Catch banners injected late (SPAs, deferred CMP scripts). Bounded so it
+  // never runs forever.
+  let observer = null;
+  function startObserver() {
+    if (observer) return;
+    try {
+      observer = new MutationObserver(() => tryClick());
+      observer.observe(document.documentElement, { childList: true, subtree: true });
+      setTimeout(stopObserver, 12000);
+    } catch {}
+  }
+  function stopObserver() {
+    if (observer) {
+      observer.disconnect();
+      observer = null;
+    }
+  }
+
   function activate() {
     injectCSS();
-    setTimeout(tryClick, 500);
-    setTimeout(tryClick, 1500);
-    setTimeout(tryClick, 3000);
-    setTimeout(tryClick, 5000);
+    tryClick();
+    [300, 800, 1500, 3000, 5000].forEach((t) => setTimeout(tryClick, t));
+    startObserver();
   }
 
   // Check storage and apply
@@ -157,8 +212,12 @@
   // Listen for toggle from popup
   chrome.runtime.onMessage.addListener((msg) => {
     if (msg.type === "nocookie_toggle") {
-      if (msg.enabled) activate();
-      else removeCSS();
+      if (msg.enabled) {
+        activate();
+      } else {
+        removeCSS();
+        stopObserver();
+      }
     }
   });
 })();
