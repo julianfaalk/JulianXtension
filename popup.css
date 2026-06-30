@@ -35,6 +35,13 @@ body {
   padding: 14px;
 }
 
+/* Grid/flex items default to min-width:auto and refuse to shrink below their
+   content — a long tab title or wide pane row would otherwise stretch the whole
+   popup past its 560px width. Force every direct child to be allowed to shrink. */
+.shell > * {
+  min-width: 0;
+}
+
 /* ---- Brand bar ---- */
 
 .brand-bar {
@@ -71,6 +78,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 2px;
+  min-width: 0;
   min-height: 44px;
   padding: 4px 4px;
   border: 0;
